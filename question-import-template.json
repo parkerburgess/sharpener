@@ -1,0 +1,17 @@
+{
+  "questions": [
+    {
+      "topic": "",
+      "level": "",
+      "questionType": "",
+      "text": "",
+      "explanation": "",
+      "answerOptions": [
+        { "text": "", "isCorrectAnswer": true },
+        { "text": "", "isCorrectAnswer": false },
+        { "text": "",    "isCorrectAnswer": false },
+        { "text": "",   "isCorrectAnswer": false }
+      ]
+    }
+  ]
+}
