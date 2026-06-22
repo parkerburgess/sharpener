@@ -10,12 +10,13 @@ type Props = {
   onAnswer: (resultId: number, answer: { answerOptionId: number } | { textResponse: string; gradedResponse: boolean }) => Promise<{ isCorrect: boolean }>;
   onSkip: () => void;
   onNext: () => void;
+  onBack?: () => void;
   isLast: boolean;
 };
 
 type AnsweredState = { isCorrect: boolean; explanation: string };
 
-export default function QuestionDisplay({ question, totalCount, mode, onAnswer, onSkip, onNext, isLast }: Props) {
+export default function QuestionDisplay({ question, totalCount, mode, onAnswer, onSkip, onNext, onBack, isLast }: Props) {
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [answered, setAnswered] = useState<AnsweredState | null>(
     // In review mode, pre-populate answered state from existing data
@@ -54,11 +55,39 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
 
   return (
     <div className="flex flex-col gap-6">
+      {/* Review navigation — circles fixed at top of card */}
+      {mode === "review" && (
+        <div className="flex items-center justify-between">
+          <button
+            onClick={onBack}
+            disabled={!onBack}
+            aria-label="Previous question"
+            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 disabled:opacity-30 disabled:cursor-default transition"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+          <p className="text-xs text-gray-400">Question {question.sortOrder} of {totalCount}</p>
+          <button
+            onClick={onNext}
+            aria-label="Next question"
+            className="w-9 h-9 rounded-full border border-gray-300 flex items-center justify-center text-gray-500 hover:bg-gray-100 transition"
+          >
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+            </svg>
+          </button>
+        </div>
+      )}
+
       {/* Question text */}
       <div>
-        <p className="text-xs text-gray-400 mb-2">
-          Question {question.sortOrder} of {totalCount}
-        </p>
+        {mode === "exam" && (
+          <p className="text-xs text-gray-400 mb-2">
+            Question {question.sortOrder} of {totalCount}
+          </p>
+        )}
         <p className="text-lg font-medium text-gray-800 whitespace-pre-wrap">{question.text}</p>
       </div>
 
@@ -68,7 +97,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
       )}
 
       {/* Multiple choice options */}
-      {question.isMultipleChoice && !isSkipped && (
+      {question.isMultipleChoice && (
         <div className="flex flex-col gap-2">
           {question.displayOptions.map((opt) => {
             const reviewSelected = mode === "review" && question.answerOptionId === opt.answerOptionId;
@@ -78,7 +107,9 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
             if (examSelected && answered) {
               extra = answered.isCorrect ? "border-green-400 bg-green-50" : "border-red-400 bg-red-50";
             } else if (reviewSelected) {
-              extra = question.gradedResponse === false ? "border-red-300 bg-red-50" : "border-green-300 bg-green-50";
+              extra = opt.isCorrect ? "border-green-300 bg-green-50" : "border-red-300 bg-red-50";
+            } else if (isSkipped && opt.isCorrect) {
+              extra = "border-yellow-300 bg-yellow-100";
             }
             return (
               <button
@@ -161,33 +192,27 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
         </div>
       )}
 
-      {/* Navigation buttons */}
-      <div className="flex gap-3 justify-end">
-        {mode === "exam" && !answered && !awaitingSelfGrade && (
-          <button
-            onClick={onSkip}
-            className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg px-4 py-2 transition"
-          >
-            Skip
-          </button>
-        )}
-        {(answered || mode === "review") && (
-          <button
-            onClick={onNext}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg px-6 py-2 transition"
-          >
-            {isLast ? (mode === "exam" ? "See Results" : "Done") : "Next"}
-          </button>
-        )}
-        {mode === "review" && isSkipped && (
-          <button
-            onClick={onNext}
-            className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg px-6 py-2 transition"
-          >
-            {isLast ? "Done" : "Next"}
-          </button>
-        )}
-      </div>
+      {/* Navigation buttons — exam mode only */}
+      {mode === "exam" && (
+        <div className="flex gap-3 justify-end">
+          {!answered && !awaitingSelfGrade && (
+            <button
+              onClick={onSkip}
+              className="text-sm text-gray-500 hover:text-gray-700 border border-gray-300 rounded-lg px-4 py-2 transition"
+            >
+              Skip
+            </button>
+          )}
+          {answered && (
+            <button
+              onClick={onNext}
+              className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded-lg px-6 py-2 transition"
+            >
+              {isLast ? "See Results" : "Next"}
+            </button>
+          )}
+        </div>
+      )}
 
       {selfGrade !== null && <span className="hidden">{String(selfGrade)}</span>}
     </div>
@@ -197,9 +222,8 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
 function buildReviewState(question: ExamQuestionView): AnsweredState {
   let isCorrect = false;
   if (question.answerOptionId != null) {
-    // For MC in review: we don't have IsCorrectAnswer on the client view,
-    // so we can't know here — leave isCorrect false; review page doesn't show the indicator
-    isCorrect = false;
+    const selected = question.displayOptions.find((o) => o.answerOptionId === question.answerOptionId);
+    isCorrect = selected?.isCorrect ?? false;
   } else if (question.gradedResponse != null) {
     isCorrect = question.gradedResponse;
   }
