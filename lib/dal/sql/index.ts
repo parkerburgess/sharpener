@@ -203,10 +203,11 @@ export const sqlDataAccess: IDataAccess = {
           DisplayKey: string;
           SortOrder: number;
           Text: string;
+          IsCorrectAnswer: boolean;
         }>(`
           SELECT
             RAO.ResultId, RAO.AnswerOptionId, RAO.DisplayKey, RAO.SortOrder,
-            AO.Text
+            AO.Text, AO.IsCorrectAnswer
           FROM [skill].Result_AnswerOption RAO
           JOIN [skill].Result R ON R.ResultId = RAO.ResultId
           JOIN [skill].AnswerOption AO ON AO.AnswerOptionId = RAO.AnswerOptionId
@@ -214,13 +215,14 @@ export const sqlDataAccess: IDataAccess = {
           ORDER BY RAO.ResultId, RAO.SortOrder
         `);
 
-      const optionsByResult = new Map<number, { answerOptionId: number; displayKey: string; text: string }[]>();
+      const optionsByResult = new Map<number, { answerOptionId: number; displayKey: string; text: string; isCorrect: boolean }[]>();
       for (const row of optionsResult.recordset) {
         if (!optionsByResult.has(row.ResultId)) optionsByResult.set(row.ResultId, []);
         optionsByResult.get(row.ResultId)!.push({
           answerOptionId: row.AnswerOptionId,
           displayKey: row.DisplayKey,
           text: row.Text,
+          isCorrect: row.IsCorrectAnswer,
         });
       }
 
@@ -261,13 +263,7 @@ export const sqlDataAccess: IDataAccess = {
             SET AnswerOptionId = @answerOptionId
             WHERE ResultId = @resultId
           `);
-
-        const correctResult = await pool.request()
-          .input("answerOptionId", sql.Int, answer.answerOptionId)
-          .query<{ IsCorrectAnswer: boolean }>(
-            "SELECT IsCorrectAnswer FROM [skill].AnswerOption WHERE AnswerOptionId = @answerOptionId"
-          );
-        return { isCorrect: Boolean(correctResult.recordset[0]?.IsCorrectAnswer) };
+        return { isCorrect: false };
       } else {
         await pool.request()
           .input("resultId", sql.Int, resultId)

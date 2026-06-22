@@ -16,6 +16,7 @@ type Props = {
 type AnsweredState = { isCorrect: boolean; explanation: string };
 
 export default function QuestionDisplay({ question, totalCount, mode, onAnswer, onSkip, onNext, isLast }: Props) {
+  const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [answered, setAnswered] = useState<AnsweredState | null>(
     // In review mode, pre-populate answered state from existing data
     mode === "review" && (question.answerOptionId != null || question.textResponse != null || question.gradedResponse != null)
@@ -29,12 +30,12 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
 
   const isSkipped = mode === "review" && question.answerOptionId == null && question.textResponse == null;
 
-  async function handleOptionSelect(answerOptionId: number) {
+  function handleOptionSelect(answerOptionId: number) {
     if (answered || mode === "review") return;
-    setSubmitting(true);
-    const result = await onAnswer(question.resultId, { answerOptionId });
-    setAnswered({ isCorrect: result.isCorrect, explanation: question.explanation });
-    setSubmitting(false);
+    const opt = question.displayOptions.find((o) => o.answerOptionId === answerOptionId);
+    setSelectedOptionId(answerOptionId);
+    setAnswered({ isCorrect: opt?.isCorrect ?? false, explanation: question.explanation });
+    void onAnswer(question.resultId, { answerOptionId });
   }
 
   async function handleTextSubmit() {
@@ -70,20 +71,15 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
       {question.isMultipleChoice && !isSkipped && (
         <div className="flex flex-col gap-2">
           {question.displayOptions.map((opt) => {
-            const isSelected = mode === "review"
-              ? question.answerOptionId === opt.answerOptionId
-              : answered != null; // we don't track which was selected client-side for exam mode here
             const reviewSelected = mode === "review" && question.answerOptionId === opt.answerOptionId;
+            const examSelected = mode === "exam" && selectedOptionId === opt.answerOptionId;
             const base = "flex items-start gap-3 p-3 rounded-lg border text-sm";
             let extra = "border-gray-200 bg-white";
-            if (reviewSelected) {
-              extra = question.gradedResponse === false || (
-                // For MC, derive correctness from answerOptionId being what it is
-                // In review mode the isCorrect state isn't stored here, use card color
-                false
-              ) ? "border-red-300 bg-red-50" : "border-green-300 bg-green-50";
+            if (examSelected && answered) {
+              extra = answered.isCorrect ? "border-green-400 bg-green-50" : "border-red-400 bg-red-50";
+            } else if (reviewSelected) {
+              extra = question.gradedResponse === false ? "border-red-300 bg-red-50" : "border-green-300 bg-green-50";
             }
-            void isSelected;
             return (
               <button
                 key={opt.answerOptionId}

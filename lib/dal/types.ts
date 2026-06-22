@@ -21,7 +21,7 @@ export type ExamQuestionView = {
   text: string;
   explanation: string;
   isMultipleChoice: boolean;
-  displayOptions: { answerOptionId: number; displayKey: string; text: string }[];
+  displayOptions: { answerOptionId: number; displayKey: string; text: string; isCorrect: boolean }[];
   answerOptionId: number | null;
   textResponse: string | null;
   gradedResponse: boolean | null;
