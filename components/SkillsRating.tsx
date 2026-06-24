@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { TopicRating } from "@/lib/dal/types";
+import SkillsRatingCard from "@/components/SkillsRatingCard";
 
 export default function SkillsRating() {
   const [ratings, setRatings] = useState<TopicRating[]>([]);
@@ -22,30 +23,12 @@ export default function SkillsRating() {
       ) : ratings.length === 0 ? (
         <p className="text-neutral-400 text-sm">No exam data yet.</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-row gap-3">
           {ratings.map((r) => (
-            <TopicCard key={r.topicId} rating={r} />
+            <SkillsRatingCard key={r.topicId} rating={r} />
           ))}
         </div>
       )}
-    </div>
-  );
-}
-
-function TopicCard({ rating }: { rating: TopicRating }) {
-  const pctColor =
-    rating.averageScore >= 80 ? "text-correct-600" :
-    rating.averageScore >= 60 ? "text-caution-600" : "text-incorrect-500";
-
-  return (
-    <div className="bg-card rounded-lg shadow-sm p-4 flex items-center gap-4">
-      <span className={`text-2xl font-bold w-14 text-center ${pctColor}`}>
-        {rating.averageScore}%
-      </span>
-      <div>
-        <p className="font-semibold text-neutral-800">{rating.displayText}</p>
-        <p className="text-xs text-neutral-500">{rating.examCount} exam{rating.examCount !== 1 ? "s" : ""}</p>
-      </div>
     </div>
   );
 }

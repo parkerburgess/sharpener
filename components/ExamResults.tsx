@@ -65,7 +65,7 @@ export default function ExamResults() {
       ) : exams.length === 0 ? (
         <p className="text-neutral-400 text-sm">No exams found.</p>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-wrap gap-3 justify-start">
           {exams.map((exam) => <ExamResultCard key={exam.examId} exam={exam} />)}
         </div>
       )}

@@ -11,11 +11,11 @@ export default function ExamResultCard({ exam }: { exam: ExamSummary }) {
     exam.percentage >= 60 ? "text-caution-600" : "text-incorrect-500";
 
   return (
-    <div className="bg-card rounded-xl shadow p-4 flex items-center gap-4">
+    <div className="bg-card rounded-xl shadow border border-neutral-200 p-4 flex items-center gap-4 w-72">
       <span className={`text-3xl font-bold w-16 text-center ${pctColor}`}>
         {exam.percentage}%
       </span>
-      <div className="flex-1 min-w-0">
+      <div className="min-w-0 flex-1">
         <p className="font-semibold text-neutral-800 truncate">{exam.title}</p>
         <div className="flex flex-wrap gap-1 mt-1">
           {exam.topics.map((t) => (
