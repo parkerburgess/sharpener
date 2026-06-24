@@ -56,16 +56,16 @@ export default function ExamPage() {
 
   if (loading) {
     return (
-      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-gray-400">Loading exam...</p>
+      <main className="min-h-screen bg-surface flex items-center justify-center">
+        <p className="text-neutral-400">Loading exam...</p>
       </main>
     );
   }
 
   if (questions.length === 0) {
     return (
-      <main className="min-h-screen bg-gray-100 flex items-center justify-center">
-        <p className="text-gray-500">No questions found for this exam.</p>
+      <main className="min-h-screen bg-surface flex items-center justify-center">
+        <p className="text-neutral-500">No questions found for this exam.</p>
       </main>
     );
   }
@@ -73,8 +73,8 @@ export default function ExamPage() {
   const current = questions[currentIndex];
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6">
-      <div className="max-w-2xl mx-auto bg-white rounded-xl shadow p-8">
+    <main className="min-h-screen bg-surface p-6">
+      <div className="max-w-2xl mx-auto bg-card rounded-xl shadow p-8">
         <QuestionDisplay
           key={current.resultId}
           question={current}

@@ -14,13 +14,13 @@ export default function SkillsRating() {
   }, []);
 
   return (
-    <div className="bg-gray-50 rounded-xl shadow p-6 flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-gray-800">Skills Rating</h2>
+    <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-4">
+      <h2 className="text-xl font-bold text-neutral-800">Skills Rating</h2>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading...</p>
+        <p className="text-neutral-400 text-sm">Loading...</p>
       ) : ratings.length === 0 ? (
-        <p className="text-gray-400 text-sm">No exam data yet.</p>
+        <p className="text-neutral-400 text-sm">No exam data yet.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {ratings.map((r) => (
@@ -34,17 +34,17 @@ export default function SkillsRating() {
 
 function TopicCard({ rating }: { rating: TopicRating }) {
   const pctColor =
-    rating.averageScore >= 80 ? "text-green-600" :
-    rating.averageScore >= 60 ? "text-yellow-600" : "text-red-500";
+    rating.averageScore >= 80 ? "text-correct-600" :
+    rating.averageScore >= 60 ? "text-caution-600" : "text-incorrect-500";
 
   return (
-    <div className="bg-white rounded-lg shadow-sm p-4 flex items-center gap-4">
+    <div className="bg-card rounded-lg shadow-sm p-4 flex items-center gap-4">
       <span className={`text-2xl font-bold w-14 text-center ${pctColor}`}>
         {rating.averageScore}%
       </span>
       <div>
-        <p className="font-semibold text-gray-800">{rating.displayText}</p>
-        <p className="text-xs text-gray-500">{rating.examCount} exam{rating.examCount !== 1 ? "s" : ""}</p>
+        <p className="font-semibold text-neutral-800">{rating.displayText}</p>
+        <p className="text-xs text-neutral-500">{rating.examCount} exam{rating.examCount !== 1 ? "s" : ""}</p>
       </div>
     </div>
   );

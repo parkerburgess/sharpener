@@ -56,18 +56,18 @@ export default function ExamSetUp() {
     router.push(`/exam/${data.examId}`);
   }
 
-  if (!lookups) return <div className="text-gray-400">Loading...</div>;
+  if (!lookups) return <div className="text-neutral-400">Loading...</div>;
 
   return (
-    <div className="bg-white rounded-xl shadow p-6 flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-gray-800">New Exam</h2>
+    <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-4">
+      <h2 className="text-xl font-bold text-neutral-800">New Exam</h2>
 
       <div className="flex flex-row flex-wrap gap-4 items-start">
         <div className="flex-1 min-w-48">
-          <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Title</label>
           <input
             type="text"
-            className="w-full border rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-gray-500"
+            className="w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-400 placeholder-neutral-500"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="e.g. C# Fundamentals Review"
@@ -75,11 +75,11 @@ export default function ExamSetUp() {
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Questions</label>
+          <label className="block text-sm font-medium text-neutral-700 mb-1">Questions</label>
           <input
             type="number"
             min={1}
-            className="w-24 border rounded-lg px-3 py-2 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+            className="w-24 border border-neutral-200 rounded-lg px-3 py-2 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-400"
             value={questionCount}
             onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
           />
@@ -100,7 +100,7 @@ export default function ExamSetUp() {
       <button
         onClick={handleStart}
         disabled={loading}
-        className="mt-2 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-semibold rounded-lg px-4 py-2 transition"
+        className="mt-2 bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white font-semibold rounded-lg px-4 py-2 transition"
       >
         {loading ? "Creating..." : "Start Exam"}
       </button>
@@ -120,11 +120,11 @@ function CheckboxGroup({
   onToggle: (id: number) => void;
 }) {
   return (
-    <div className="border border-gray-200 rounded-lg p-3">
-      <p className="text-sm font-medium text-gray-700 mb-2">{label}</p>
+    <div className="border border-neutral-200 rounded-lg p-3">
+      <p className="text-sm font-medium text-neutral-700 mb-2">{label}</p>
       <div className="flex flex-wrap gap-2">
         {items.map((item) => (
-          <label key={item.id} className="flex items-center gap-1.5 text-sm text-gray-800 cursor-pointer">
+          <label key={item.id} className="flex items-center gap-1.5 text-sm text-neutral-800 cursor-pointer">
             <input
               type="checkbox"
               checked={selected.includes(item.id)}

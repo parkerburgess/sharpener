@@ -23,21 +23,21 @@ export default function ExamResultsPage() {
   }, [examId]);
 
   return (
-    <main className="min-h-screen bg-gray-100 p-6 flex items-center justify-center">
-      <div className="max-w-lg w-full bg-white rounded-xl shadow p-8 flex flex-col gap-6">
-        <h1 className="text-2xl font-bold text-gray-800">Exam Complete</h1>
+    <main className="min-h-screen bg-surface p-6 flex items-center justify-center">
+      <div className="max-w-lg w-full bg-card rounded-xl shadow p-6 flex flex-col gap-6">
+        <h1 className="text-3xl font-bold text-neutral-800">Exam Complete</h1>
 
         {loading ? (
-          <p className="text-gray-400">Loading results...</p>
+          <p className="text-neutral-400">Loading results...</p>
         ) : !exam ? (
-          <p className="text-gray-500">Results not found.</p>
+          <p className="text-neutral-500">Results not found.</p>
         ) : (
           <ExamResultCard exam={exam} />
         )}
 
         <Link
           href="/"
-          className="text-center bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg px-4 py-2 transition"
+          className="text-center bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg px-4 py-2 transition"
         >
           Back to Home
         </Link>

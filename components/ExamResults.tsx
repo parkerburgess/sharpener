@@ -34,14 +34,14 @@ export default function ExamResults() {
   }, [days, topicId]);
 
   return (
-    <div className="bg-gray-50 rounded-xl shadow p-6 flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-gray-800">Exam Results</h2>
+    <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-4">
+      <h2 className="text-xl font-bold text-neutral-800">Exam Results</h2>
 
       <div className="flex gap-3">
         <select
           value={days}
           onChange={(e) => setDays(e.target.value)}
-          className="border rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-400"
         >
           {DATE_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -51,7 +51,7 @@ export default function ExamResults() {
         <select
           value={topicId}
           onChange={(e) => setTopicId(e.target.value)}
-          className="border rounded-lg px-3 py-1.5 text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-400"
+          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-400"
         >
           <option value="">All topics</option>
           {topics.map((t) => (
@@ -61,9 +61,9 @@ export default function ExamResults() {
       </div>
 
       {loading ? (
-        <p className="text-gray-400 text-sm">Loading...</p>
+        <p className="text-neutral-400 text-sm">Loading...</p>
       ) : exams.length === 0 ? (
-        <p className="text-gray-400 text-sm">No exams found.</p>
+        <p className="text-neutral-400 text-sm">No exams found.</p>
       ) : (
         <div className="flex flex-col gap-3">
           {exams.map((exam) => <ExamResultCard key={exam.examId} exam={exam} />)}
