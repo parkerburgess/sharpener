@@ -94,10 +94,9 @@ export default function ReviewPage() {
             </label>
             <button
               onClick={() => router.push("/")}
-              aria-label="Exit review"
-              className="w-6 h-6 rounded-full flex items-center justify-center text-caution-700 hover:bg-caution-200 transition font-bold text-base leading-none"
+              className="text-sm font-semibold text-caution-700 hover:text-caution-900 transition cursor-pointer"
             >
-              ✕
+              End Review
             </button>
           </div>
         </div>
@@ -107,6 +106,7 @@ export default function ReviewPage() {
             key={current.resultId}
             question={current}
             totalCount={filtered.length}
+            questionNumber={currentIndex + 1}
             mode="review"
             onAnswer={async () => ({ isCorrect: false })}
             onSkip={() => {}}

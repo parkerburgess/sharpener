@@ -196,6 +196,7 @@ export const sqlDataAccess: IDataAccess = {
           ResultId: number;
           SortOrder: number;
           QuestionId: number;
+          Level: string;
           Text: string;
           Explanation: string;
           AnswerOptionId: number | null;
@@ -204,10 +205,12 @@ export const sqlDataAccess: IDataAccess = {
         }>(`
           SELECT
             R.ResultId, R.SortOrder, R.QuestionId,
+            L.DisplayText AS Level,
             Q.Text, Q.Explanation,
             R.AnswerOptionId, R.TextResponse, R.GradedResponse
           FROM [skill].Result R
           JOIN [skill].Question Q ON Q.QuestionId = R.QuestionId
+          JOIN [skill].Level L ON L.LevelId = Q.LevelId
           WHERE R.ExamId = @examId
           ORDER BY R.SortOrder
         `);
@@ -249,6 +252,7 @@ export const sqlDataAccess: IDataAccess = {
           resultId: row.ResultId,
           sortOrder: row.SortOrder,
           questionId: row.QuestionId,
+          level: row.Level,
           text: row.Text,
           explanation: row.Explanation,
           isMultipleChoice: displayOptions.length > 0,
@@ -358,6 +362,37 @@ export const sqlDataAccess: IDataAccess = {
         topicsByExam.get(row.ExamId)!.push(row.DisplayText);
       }
 
+      const levelsResult = await pool.request().query<{
+        ExamId: number;
+        Level: string;
+        TotalCount: number;
+        CorrectCount: number;
+      }>(`
+        SELECT R.ExamId, L.DisplayText AS Level,
+          COUNT(R.ResultId) AS TotalCount,
+          SUM(CASE
+            WHEN R.AnswerOptionId IS NOT NULL AND AO.IsCorrectAnswer = 1 THEN 1
+            WHEN R.GradedResponse = 1 THEN 1
+            ELSE 0
+          END) AS CorrectCount
+        FROM [skill].Result R
+        JOIN [skill].Question Q ON Q.QuestionId = R.QuestionId
+        JOIN [skill].Level L ON L.LevelId = Q.LevelId
+        LEFT JOIN [skill].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+        WHERE R.ExamId IN (${idList})
+        GROUP BY R.ExamId, L.DisplayText
+      `);
+
+      const levelsByExam = new Map<number, { level: string; correct: number; total: number }[]>();
+      for (const row of levelsResult.recordset) {
+        if (!levelsByExam.has(row.ExamId)) levelsByExam.set(row.ExamId, []);
+        levelsByExam.get(row.ExamId)!.push({
+          level: row.Level,
+          correct: row.CorrectCount ?? 0,
+          total: row.TotalCount,
+        });
+      }
+
       return summaryResult.recordset.map((row): ExamSummary => {
         const total = row.TotalCount;
         const correct = row.CorrectCount ?? 0;
@@ -369,6 +404,7 @@ export const sqlDataAccess: IDataAccess = {
           correctCount: correct,
           totalCount: total,
           percentage: total > 0 ? Math.round((correct / total) * 100) : 0,
+          levelBreakdown: levelsByExam.get(row.ExamId) ?? [],
         };
       });
     } catch (err) {

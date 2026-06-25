@@ -6,6 +6,7 @@ import type { ExamQuestionView } from "@/lib/dal/types";
 type Props = {
   question: ExamQuestionView;
   totalCount: number;
+  questionNumber?: number;
   mode: "exam" | "review";
   onAnswer: (resultId: number, answer: { answerOptionId: number } | { textResponse: string; gradedResponse: boolean }) => Promise<{ isCorrect: boolean }>;
   onSkip: () => void;
@@ -16,7 +17,7 @@ type Props = {
 
 type AnsweredState = { isCorrect: boolean; explanation: string };
 
-export default function QuestionDisplay({ question, totalCount, mode, onAnswer, onSkip, onNext, onBack, isLast }: Props) {
+export default function QuestionDisplay({ question, totalCount, questionNumber, mode, onAnswer, onSkip, onNext, onBack, isLast }: Props) {
   const [selectedOptionId, setSelectedOptionId] = useState<number | null>(null);
   const [answered, setAnswered] = useState<AnsweredState | null>(
     mode === "review" && (question.answerOptionId != null || question.textResponse != null || question.gradedResponse != null)
@@ -29,6 +30,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
   const [submitting, setSubmitting] = useState(false);
 
   const isSkipped = mode === "review" && question.answerOptionId == null && question.textResponse == null;
+  const displayNumber = questionNumber ?? question.sortOrder;
 
   function handleOptionSelect(answerOptionId: number) {
     if (answered || mode === "review") return;
@@ -66,7 +68,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
               <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
             </svg>
           </button>
-          <p className="text-sm text-neutral-500">Question {question.sortOrder} of {totalCount}</p>
+          <p className="text-sm text-neutral-500">Question {displayNumber} of {totalCount}</p>
           <button
             onClick={onNext}
             aria-label="Next question"
@@ -82,7 +84,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
       <div>
         {mode === "exam" && (
           <p className="text-sm text-neutral-500 mb-2">
-            Question {question.sortOrder} of {totalCount}
+            Question {displayNumber} of {totalCount}
           </p>
         )}
         <p className="text-lg font-medium text-neutral-800 whitespace-pre-wrap">{question.text}</p>
@@ -165,14 +167,16 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
       )}
 
       {answered && (
-        <div className={`rounded-lg p-3 text-sm font-medium ${answered.isCorrect ? "bg-correct-100 text-correct-800" : "bg-incorrect-100 text-incorrect-700"}`}>
-          {answered.isCorrect ? "Correct!" : "Incorrect"}
+        <div className={`rounded-lg p-3 text-sm font-medium flex items-center justify-between ${answered.isCorrect ? "bg-correct-100 text-correct-800" : "bg-incorrect-100 text-incorrect-700"}`}>
+          <span>{answered.isCorrect ? "Correct!" : "Incorrect"}</span>
+          <span className="text-xs font-normal opacity-70">{question.level}</span>
         </div>
       )}
 
       {mode === "review" && !question.isMultipleChoice && question.gradedResponse != null && !isSkipped && (
-        <div className={`rounded-lg p-3 text-sm font-medium ${question.gradedResponse ? "bg-correct-100 text-correct-800" : "bg-incorrect-100 text-incorrect-700"}`}>
-          {question.gradedResponse ? "Marked correct" : "Marked incorrect"}
+        <div className={`rounded-lg p-3 text-sm font-medium flex items-center justify-between ${question.gradedResponse ? "bg-correct-100 text-correct-800" : "bg-incorrect-100 text-incorrect-700"}`}>
+          <span>{question.gradedResponse ? "Marked correct" : "Marked incorrect"}</span>
+          <span className="text-xs font-normal opacity-70">{question.level}</span>
         </div>
       )}
 

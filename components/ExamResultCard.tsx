@@ -4,6 +4,8 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import type { ExamSummary } from "@/lib/dal/types";
 
+const LEVEL_ORDER = ["Novice", "Intermediate", "Pro"] as const;
+
 export default function ExamResultCard({ exam }: { exam: ExamSummary }) {
   const router = useRouter();
   const titleRef = useRef<HTMLParagraphElement>(null);
@@ -13,13 +15,12 @@ export default function ExamResultCard({ exam }: { exam: ExamSummary }) {
     const el = titleRef.current;
     if (el) setTitleTruncated(el.scrollWidth > el.offsetWidth);
   }, [exam.title]);
-  const date = new Date(exam.dateTaken).toLocaleDateString("en-US", {
-    year: "numeric", month: "short", day: "numeric",
-  });
 
   const pctColor =
     exam.percentage >= 80 ? "text-correct-600" :
     exam.percentage >= 60 ? "text-caution-600" : "text-incorrect-500";
+
+  const levelMap = new Map(exam.levelBreakdown.map((lb) => [lb.level, lb]));
 
   return (
     <div className="bg-card rounded-xl shadow border border-neutral-200 p-4 flex flex-col gap-2 w-72">
@@ -36,13 +37,31 @@ export default function ExamResultCard({ exam }: { exam: ExamSummary }) {
           </svg>
         </button>
       </div>
-      <div className="flex items-center gap-4">
-        <span className={`text-3xl font-bold w-16 text-center ${pctColor}`}>
-          {exam.percentage}%
-        </span>
-        <p className="text-sm text-neutral-500 flex-1">
-          {exam.correctCount}/{exam.totalCount} correct &middot; {date}
-        </p>
+      <div className="flex items-start gap-4">
+        <div className="flex flex-col items-center w-16 shrink-0">
+          <span className={`text-3xl font-bold ${pctColor}`}>
+            {exam.percentage}%
+          </span>
+          <span className="text-sm text-neutral-500">
+            {exam.correctCount}/{exam.totalCount}
+          </span>
+        </div>
+        <div className="flex flex-col gap-0.5 flex-1">
+          {LEVEL_ORDER.map((levelName) => {
+            const lb = levelMap.get(levelName);
+            const active = lb != null && lb.total > 0;
+            return (
+              <div key={levelName} className="grid grid-cols-[2.5rem_1fr] items-center gap-1 text-sm">
+                <span className={`text-right font-medium tabular-nums ${active ? "text-neutral-700" : "text-neutral-300"}`}>
+                  {active ? `${lb.correct}/${lb.total}` : "0/0"}
+                </span>
+                <span className={active ? "text-neutral-500" : "text-neutral-300"}>
+                  {levelName}
+                </span>
+              </div>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

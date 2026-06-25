@@ -18,6 +18,7 @@ export type ExamQuestionView = {
   resultId: number;
   sortOrder: number;
   questionId: number;
+  level: string;
   text: string;
   explanation: string;
   isMultipleChoice: boolean;
@@ -30,6 +31,12 @@ export type ExamQuestionView = {
 export type AnswerMultipleChoiceInput = { answerOptionId: number };
 export type AnswerTextInput = { textResponse: string; gradedResponse: boolean };
 
+export type LevelBreakdown = {
+  level: string;
+  correct: number;
+  total: number;
+};
+
 export type ExamSummary = {
   examId: number;
   title: string;
@@ -38,6 +45,7 @@ export type ExamSummary = {
   correctCount: number;
   totalCount: number;
   percentage: number;
+  levelBreakdown: LevelBreakdown[];
 };
 
 export type TopicRating = {

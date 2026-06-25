@@ -22,21 +22,20 @@ export default function ExamSetUp() {
     if (!lookups) return;
     if (title !== "" && title !== autoTitleRef.current) return;
 
-    const levelPart = lookups.levels
-      .filter((l) => selectedLevels.includes(l.id))
-      .map((l) => l.displayText.slice(0, 3).replace(/\s+/g, ""))
-      .join("_");
-    const wrappedLevel = levelPart ? `(${levelPart})` : "";
-
     const topicPart = lookups.topics
       .filter((t) => selectedTopics.includes(t.id))
-      .map((t) => t.displayText.slice(0, 4).replace(/\s+/g, ""))
+      .map((t) => t.displayText)
       .join("_");
 
-    const generated = [topicPart, wrappedLevel].filter(Boolean).join("_");
+    const now = new Date();
+    const dd = String(now.getDate()).padStart(2, "0");
+    const mm = String(now.getMonth() + 1).padStart(2, "0");
+    const datePart = `${dd}/${mm}`;
+
+    const generated = [topicPart, datePart].filter(Boolean).join("_");
     autoTitleRef.current = generated;
     setTitle(generated);
-  }, [selectedLevels, selectedTopics, lookups]);
+  }, [selectedTopics, lookups]);
 
   useEffect(() => {
     const el = titleSpanRef.current;
