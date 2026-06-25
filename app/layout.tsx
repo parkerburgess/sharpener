@@ -3,6 +3,7 @@ import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Providers from "./providers";
 import Banner from "@/components/Banner";
+import { getUserName } from "@/lib/auth";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -19,11 +20,13 @@ export const metadata: Metadata = {
   description: "Interactive skill assessment and review",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const userName = (await getUserName()) ?? "User";
+
   return (
     <html
       lang="en"
@@ -32,7 +35,7 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col">
         <Providers>
-          <Banner />
+          <Banner userName={userName} />
           {children}
         </Providers>
       </body>

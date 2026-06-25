@@ -58,6 +58,7 @@ export type ImportQuestion = {
 
 export interface IDataAccess {
   getLookups(): Promise<Lookups>;
+  createTopic(displayText: string): Promise<number>;
   createExam(input: CreateExamInput): Promise<number>;
   getExamQuestions(examId: number): Promise<ExamQuestionView[]>;
   answerQuestion(

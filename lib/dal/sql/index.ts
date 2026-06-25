@@ -51,6 +51,23 @@ export const sqlDataAccess: IDataAccess = {
     }
   },
 
+  async createTopic(displayText: string): Promise<number> {
+    try {
+      const pool = await getPool();
+      const result = await pool
+        .request()
+        .input("DisplayText", sql.NVarChar(100), displayText)
+        .query<{ TopicId: number }>(`
+          INSERT INTO [skill].Topic (DisplayText) VALUES (@DisplayText);
+          SELECT SCOPE_IDENTITY() AS TopicId;
+        `);
+      return result.recordset[0].TopicId;
+    } catch (err) {
+      console.error("[DAL] createTopic failed", { err });
+      throw err;
+    }
+  },
+
   async createExam(input: CreateExamInput): Promise<number> {
     try {
       const pool = await getPool();
