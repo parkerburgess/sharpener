@@ -60,7 +60,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
             onClick={onBack}
             disabled={!onBack}
             aria-label="Previous question"
-            className="w-9 h-9 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-500 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-default transition"
+            className="w-9 h-9 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-500 hover:bg-neutral-100 disabled:opacity-30 disabled:cursor-default cursor-pointer transition"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M10 12L6 8L10 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -70,7 +70,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
           <button
             onClick={onNext}
             aria-label="Next question"
-            className="w-9 h-9 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-500 hover:bg-neutral-100 transition"
+            className="w-9 h-9 rounded-full border border-neutral-300 flex items-center justify-center text-neutral-500 hover:bg-neutral-100 cursor-pointer transition"
           >
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
               <path d="M6 4L10 8L6 12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -111,7 +111,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
                 key={opt.answerOptionId}
                 disabled={!!answered || mode === "review" || submitting}
                 onClick={() => handleOptionSelect(opt.answerOptionId)}
-                className={`${base} ${extra} text-left disabled:cursor-default`}
+                className={`${base} ${extra} text-left cursor-pointer disabled:cursor-default`}
               >
                 <span className="font-bold text-neutral-500 w-5 shrink-0">{opt.displayKey}.</span>
                 <span className="text-neutral-800">{opt.text}</span>
@@ -135,7 +135,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
             <button
               onClick={handleTextSubmit}
               disabled={!textInput.trim() || submitting}
-              className="self-start bg-brand-600 hover:bg-brand-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg px-4 py-2 transition"
+              className="self-start bg-brand-600 hover:bg-brand-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white text-sm font-semibold rounded-lg px-4 py-2 transition"
             >
               Submit
             </button>
@@ -147,14 +147,14 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
                 <button
                   onClick={() => handleSelfGrade(true)}
                   disabled={submitting}
-                  className="bg-correct-600 hover:bg-correct-700 disabled:opacity-50 text-white text-sm font-semibold rounded-lg px-4 py-2 transition"
+                  className="bg-correct-600 hover:bg-correct-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white text-sm font-semibold rounded-lg px-4 py-2 transition"
                 >
                   I got it right
                 </button>
                 <button
                   onClick={() => handleSelfGrade(false)}
                   disabled={submitting}
-                  className="bg-incorrect-500 hover:bg-incorrect-600 disabled:opacity-50 text-white text-sm font-semibold rounded-lg px-4 py-2 transition"
+                  className="bg-incorrect-500 hover:bg-incorrect-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-white text-sm font-semibold rounded-lg px-4 py-2 transition"
                 >
                   I got it wrong
                 </button>
@@ -188,7 +188,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
           {!answered && !awaitingSelfGrade && (
             <button
               onClick={onSkip}
-              className="text-sm text-neutral-500 hover:text-neutral-700 border border-neutral-300 rounded-lg px-4 py-2 transition"
+              className="text-sm text-neutral-500 hover:text-neutral-700 border border-neutral-300 rounded-lg px-4 py-2 cursor-pointer transition"
             >
               Skip
             </button>
@@ -196,7 +196,7 @@ export default function QuestionDisplay({ question, totalCount, mode, onAnswer, 
           {answered && (
             <button
               onClick={onNext}
-              className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2 transition"
+              className="bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold rounded-lg px-4 py-2 cursor-pointer transition"
             >
               {isLast ? "See Results" : "Next"}
             </button>

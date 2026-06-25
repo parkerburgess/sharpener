@@ -57,7 +57,7 @@ export default function Banner() {
           <button
             onClick={(e) => { e.stopPropagation(); setTheme(theme === "dark" ? "light" : "dark"); }}
             aria-label={theme === "dark" ? "Switch to light mode" : "Switch to dark mode"}
-            className="border border-neutral-300 rounded-lg px-2 py-1.5 text-neutral-600 hover:bg-neutral-50 transition flex items-center"
+            className="border border-neutral-300 rounded-lg px-2 py-1.5 text-neutral-600 hover:bg-neutral-50 transition flex items-center cursor-pointer"
           >
             {theme === "dark" ? (
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -77,7 +77,7 @@ export default function Banner() {
         <button
           onClick={(e) => { e.stopPropagation(); importRef.current?.click(); }}
           disabled={importing}
-          className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 text-neutral-600 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+          className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 text-neutral-600 hover:bg-neutral-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition"
         >
           {importing ? (
             <span className="flex items-center gap-2">

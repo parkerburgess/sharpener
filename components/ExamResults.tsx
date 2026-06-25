@@ -34,14 +34,14 @@ export default function ExamResults() {
   }, [days, topicId]);
 
   return (
-    <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-neutral-800">Exam Results</h2>
+    <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-4 h-full">
+      <div className="flex items-center gap-3">
+        <h2 className="text-xl font-bold text-neutral-800 mr-1">Exam Results</h2>
 
-      <div className="flex gap-3">
         <select
           value={days}
           onChange={(e) => setDays(e.target.value)}
-          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
         >
           {DATE_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -51,7 +51,7 @@ export default function ExamResults() {
         <select
           value={topicId}
           onChange={(e) => setTopicId(e.target.value)}
-          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-400"
+          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
         >
           <option value="">All topics</option>
           {topics.map((t) => (
