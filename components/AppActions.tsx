@@ -2,9 +2,11 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { LookupItem } from "@/lib/dal/types";
+import GenerateQuestionsModal from "@/components/GenerateQuestionsModal";
 
 export default function AppActions() {
   const [open, setOpen] = useState(false);
+  const [showGenerateModal, setShowGenerateModal] = useState(false);
   const [importing, setImporting] = useState(false);
   const [showTopicModal, setShowTopicModal] = useState(false);
   const [newTopicName, setNewTopicName] = useState("");
@@ -120,8 +122,8 @@ export default function AppActions() {
               Import Questions
             </button>
             <button
-              disabled
-              className="block w-full text-left px-4 py-2.5 text-sm text-neutral-400 cursor-not-allowed border-t border-neutral-100"
+              onClick={(e) => { e.stopPropagation(); setOpen(false); setShowGenerateModal(true); }}
+              className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 cursor-pointer border-t border-neutral-100"
             >
               Generate Questions
             </button>
@@ -198,6 +200,11 @@ export default function AppActions() {
           </div>
         </div>
       )}
+
+      <GenerateQuestionsModal
+        open={showGenerateModal}
+        onClose={() => setShowGenerateModal(false)}
+      />
     </>
   );
 }
