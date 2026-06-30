@@ -41,9 +41,18 @@ export const sqlDataAccess: IDataAccess = {
         ),
       ]);
       return {
-        levels: levelsResult.recordset.map((r): LookupItem => ({ id: r.LevelId, displayText: r.DisplayText })),
-        topics: topicsResult.recordset.map((r): LookupItem => ({ id: r.TopicId, displayText: r.DisplayText })),
-        questionTypes: questionTypesResult.recordset.map((r): LookupItem => ({ id: r.QuestionTypeId, displayText: r.DisplayText })),
+        levels: levelsResult.recordset.map((r): LookupItem => ({
+          id: r.LevelId,
+          displayText: r.DisplayText,
+        })),
+        topics: topicsResult.recordset.map((r): LookupItem => ({
+          id: r.TopicId,
+          displayText: r.DisplayText,
+        })),
+        questionTypes: questionTypesResult.recordset.map((r): LookupItem => ({
+          id: r.QuestionTypeId,
+          displayText: r.DisplayText,
+        })),
       };
     } catch (err) {
       console.error("[DAL] getLookups failed", { err });

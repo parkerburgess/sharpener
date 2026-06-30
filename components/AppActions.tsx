@@ -128,13 +128,61 @@ export default function AppActions() {
     }
   }
 
+  // #region Tailwind utility consts
+  const menuWrapperCls = "relative";
+  const menuTriggerBtnCls =
+    "border border-neutral-300 rounded-lg p-2 text-neutral-600 " +
+    "hover:bg-neutral-50 transition cursor-pointer";
+  const menuDropdownCls =
+    "absolute left-0 top-full mt-1 bg-card border border-neutral-200 " +
+    "rounded-lg shadow-md z-20 min-w-48";
+  const menuItemImportCls =
+    "block w-full text-left px-4 py-2.5 text-sm text-neutral-600 " +
+    "hover:bg-neutral-50 rounded-t-lg cursor-pointer";
+  const menuItemGenerateCls =
+    "block w-full text-left px-4 py-2.5 text-sm text-neutral-600 " +
+    "hover:bg-neutral-50 cursor-pointer border-t border-neutral-100";
+  const menuItemCreateTopicCls =
+    "block w-full text-left px-4 py-2.5 text-sm text-neutral-600 " +
+    "hover:bg-neutral-50 rounded-b-lg cursor-pointer border-t border-neutral-100";
+  const importInputCls = "hidden";
+  const backdropCls =
+    "fixed inset-0 z-50 flex items-center justify-center bg-black/40";
+  const topicModalCardCls =
+    "bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-sm p-6";
+  const topicModalTitleCls = "text-base font-semibold text-neutral-800 mb-4";
+  const topicFormCls = "grid gap-4";
+  const topicFieldCls = "grid gap-1.5";
+  const topicLabelCls = "text-sm font-medium text-neutral-700";
+  const topicInputCls =
+    "text-sm border border-neutral-300 rounded-lg px-3 py-2 " +
+    "text-neutral-800 bg-surface placeholder-gray-400";
+  const topicErrorCls = "text-xs text-incorrect-500";
+  const loadingTopicsTextCls = "text-xs text-neutral-400";
+  const existingTopicsGroupCls = "grid gap-1.5";
+  const existingTopicsLabelCls =
+    "text-xs font-medium text-neutral-500 uppercase tracking-wide";
+  const existingTopicsListCls =
+    "max-h-40 overflow-y-auto border border-neutral-200 " +
+    "rounded-lg divide-y divide-neutral-100";
+  const existingTopicsItemCls = "px-3 py-1.5 text-sm text-neutral-600";
+  const topicActionsRowCls = "flex justify-end gap-2 pt-1";
+  const cancelBtnCls =
+    "text-sm border border-neutral-300 rounded-lg px-4 py-2 " +
+    "text-neutral-600 hover:bg-neutral-50 transition cursor-pointer";
+  const saveBtnCls =
+    "text-sm bg-neutral-800 text-white rounded-lg px-4 py-2 " +
+    "hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed " +
+    "transition cursor-pointer";
+  // #endregion
+
   return (
     <>
-      <div ref={menuRef} className="relative">
+      <div ref={menuRef} className={menuWrapperCls}>
         <button
           onClick={handleMenuToggle}
           aria-label="App menu"
-          className="border border-neutral-300 rounded-lg p-2 text-neutral-600 hover:bg-neutral-50 transition cursor-pointer"
+          className={menuTriggerBtnCls}
         >
           {importing ? (
             <svg className="animate-spin h-[18px] w-[18px]" viewBox="0 0 24 24" fill="none">
@@ -151,65 +199,59 @@ export default function AppActions() {
         </button>
 
         {open && (
-          <div className="absolute left-0 top-full mt-1 bg-card border border-neutral-200 rounded-lg shadow-md z-20 min-w-48">
-            <button
-              onClick={handleImportClick}
-              className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 rounded-t-lg cursor-pointer"
-            >
+          <div className={menuDropdownCls}>
+            <button onClick={handleImportClick} className={menuItemImportCls}>
               Import Questions
             </button>
-            <button
-              onClick={handleGenerateClick}
-              className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 cursor-pointer border-t border-neutral-100"
-            >
+            <button onClick={handleGenerateClick} className={menuItemGenerateCls}>
               Generate Questions
             </button>
-            <button
-              onClick={handleCreateTopicClick}
-              className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 rounded-b-lg cursor-pointer border-t border-neutral-100"
-            >
+            <button onClick={handleCreateTopicClick} className={menuItemCreateTopicCls}>
               Create New Topic
             </button>
           </div>
         )}
 
-        <input ref={importRef} type="file" accept=".json" className="hidden" onChange={handleImport} />
+        <input
+          ref={importRef}
+          type="file"
+          accept=".json"
+          className={importInputCls}
+          onChange={handleImport}
+        />
       </div>
 
       {showTopicModal && (
-        <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={handleTopicModalBackdropClick}
-        >
+        <div className={backdropCls} onClick={handleTopicModalBackdropClick}>
           <div
-            className="bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-sm p-6"
+            className={topicModalCardCls}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 className="text-base font-semibold text-neutral-800 mb-4">Create New Topic</h2>
+            <h2 className={topicModalTitleCls}>Create New Topic</h2>
 
-            <form onSubmit={handleTopicFormSubmit} className="grid gap-4">
-              <div className="grid gap-1.5">
-                <label className="text-sm font-medium text-neutral-700">Topic name</label>
+            <form onSubmit={handleTopicFormSubmit} className={topicFormCls}>
+              <div className={topicFieldCls}>
+                <label className={topicLabelCls}>Topic name</label>
                 <input
                   autoFocus
                   value={newTopicName}
                   onChange={handleTopicNameChange}
                   placeholder="e.g. React Hooks"
-                  className="text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 bg-surface placeholder-gray-400"
+                  className={topicInputCls}
                 />
                 {topicError && (
-                  <p className="text-xs text-incorrect-500">{topicError}</p>
+                  <p className={topicErrorCls}>{topicError}</p>
                 )}
               </div>
 
               {existingTopics === null ? (
-                <p className="text-xs text-neutral-400">Loading existing topics...</p>
+                <p className={loadingTopicsTextCls}>Loading existing topics...</p>
               ) : existingTopics.length > 0 ? (
-                <div className="grid gap-1.5">
-                  <p className="text-xs font-medium text-neutral-500 uppercase tracking-wide">Existing topics</p>
-                  <ul className="max-h-40 overflow-y-auto border border-neutral-200 rounded-lg divide-y divide-neutral-100">
+                <div className={existingTopicsGroupCls}>
+                  <p className={existingTopicsLabelCls}>Existing topics</p>
+                  <ul className={existingTopicsListCls}>
                     {existingTopics.map((t) => (
-                      <li key={t.id} className="px-3 py-1.5 text-sm text-neutral-600">
+                      <li key={t.id} className={existingTopicsItemCls}>
                         {t.displayText}
                       </li>
                     ))}
@@ -217,18 +259,18 @@ export default function AppActions() {
                 </div>
               ) : null}
 
-              <div className="flex justify-end gap-2 pt-1">
+              <div className={topicActionsRowCls}>
                 <button
                   type="button"
                   onClick={closeTopicModal}
-                  className="text-sm border border-neutral-300 rounded-lg px-4 py-2 text-neutral-600 hover:bg-neutral-50 transition cursor-pointer"
+                  className={cancelBtnCls}
                 >
                   Cancel
                 </button>
                 <button
                   type="submit"
                   disabled={savingTopic || !newTopicName.trim()}
-                  className="text-sm bg-neutral-800 text-white rounded-lg px-4 py-2 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition cursor-pointer"
+                  className={saveBtnCls}
                 >
                   {savingTopic ? "Creating..." : "Create"}
                 </button>

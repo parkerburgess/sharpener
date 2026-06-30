@@ -54,18 +54,27 @@ export default function ExamPage() {
     }
   }
 
+  // #region Tailwind utility consts
+  const screenCenterCls =
+    "min-h-screen bg-surface flex items-center justify-center";
+  const loadingTextCls = "text-neutral-400";
+  const emptyTextCls = "text-neutral-500";
+  const mainCls = "min-h-screen bg-surface p-6";
+  const questionCardCls = "max-w-2xl mx-auto bg-card rounded-xl shadow p-8";
+  // #endregion
+
   if (loading) {
     return (
-      <main className="min-h-screen bg-surface flex items-center justify-center">
-        <p className="text-neutral-400">Loading exam...</p>
+      <main className={screenCenterCls}>
+        <p className={loadingTextCls}>Loading exam...</p>
       </main>
     );
   }
 
   if (questions.length === 0) {
     return (
-      <main className="min-h-screen bg-surface flex items-center justify-center">
-        <p className="text-neutral-500">No questions found for this exam.</p>
+      <main className={screenCenterCls}>
+        <p className={emptyTextCls}>No questions found for this exam.</p>
       </main>
     );
   }
@@ -73,8 +82,8 @@ export default function ExamPage() {
   const current = questions[currentIndex];
 
   return (
-    <main className="min-h-screen bg-surface p-6">
-      <div className="max-w-2xl mx-auto bg-card rounded-xl shadow p-8">
+    <main className={mainCls}>
+      <div className={questionCardCls}>
         <QuestionDisplay
           key={current.resultId}
           question={current}

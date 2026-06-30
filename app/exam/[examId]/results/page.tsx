@@ -12,7 +12,6 @@ export default function ExamResultsPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // Fetch all exams and find this one — simple approach since we have no single-exam endpoint
     fetch("/api/exams")
       .then((r) => r.json())
       .then((data: ExamSummary[]) => {
@@ -22,23 +21,33 @@ export default function ExamResultsPage() {
       });
   }, [examId]);
 
+  // #region Tailwind utility consts
+  const pageCls =
+    "min-h-screen bg-surface p-6 flex items-center justify-center";
+  const cardCls =
+    "max-w-lg w-full bg-card rounded-xl shadow p-6 flex flex-col gap-6";
+  const titleCls = "text-3xl font-bold text-neutral-800";
+  const loadingTextCls = "text-neutral-400";
+  const notFoundTextCls = "text-neutral-500";
+  const homeLinkCls =
+    "text-center bg-brand-600 hover:bg-brand-700 text-white " +
+    "font-semibold rounded-lg px-4 py-2 transition";
+  // #endregion
+
   return (
-    <main className="min-h-screen bg-surface p-6 flex items-center justify-center">
-      <div className="max-w-lg w-full bg-card rounded-xl shadow p-6 flex flex-col gap-6">
-        <h1 className="text-3xl font-bold text-neutral-800">Exam Complete</h1>
+    <main className={pageCls}>
+      <div className={cardCls}>
+        <h1 className={titleCls}>Exam Complete</h1>
 
         {loading ? (
-          <p className="text-neutral-400">Loading results...</p>
+          <p className={loadingTextCls}>Loading results...</p>
         ) : !exam ? (
-          <p className="text-neutral-500">Results not found.</p>
+          <p className={notFoundTextCls}>Results not found.</p>
         ) : (
           <ExamResultCard exam={exam} />
         )}
 
-        <Link
-          href="/"
-          className="text-center bg-brand-600 hover:bg-brand-700 text-white font-semibold rounded-lg px-4 py-2 transition"
-        >
+        <Link href="/" className={homeLinkCls}>
           Back to Home
         </Link>
       </div>

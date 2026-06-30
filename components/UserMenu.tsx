@@ -42,21 +42,31 @@ export default function UserMenu({ userName }: Props) {
 
   const isDark = theme === "dark";
 
+  // #region Tailwind utility consts
+  const wrapperCls = "relative";
+  const triggerBtnCls =
+    "text-sm border border-neutral-300 rounded-lg px-3 py-1.5 " +
+    "text-neutral-600 hover:bg-neutral-50 transition cursor-pointer";
+  const dropdownCls =
+    "absolute right-0 top-full mt-1 bg-card border border-neutral-200 " +
+    "rounded-lg shadow-md z-20 min-w-max";
+  const themeBtnCls =
+    "flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm " +
+    "text-neutral-600 hover:bg-neutral-50 rounded-t-lg cursor-pointer";
+  const signOutBtnCls =
+    "block w-full text-left px-4 py-2.5 text-sm text-neutral-600 " +
+    "hover:bg-neutral-50 rounded-b-lg cursor-pointer";
+  // #endregion
+
   return (
-    <div ref={ref} className="relative">
-      <button
-        onClick={handleToggle}
-        className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 text-neutral-600 hover:bg-neutral-50 transition cursor-pointer"
-      >
+    <div ref={ref} className={wrapperCls}>
+      <button onClick={handleToggle} className={triggerBtnCls}>
         {userName}
       </button>
       {open && (
-        <div className="absolute right-0 top-full mt-1 bg-card border border-neutral-200 rounded-lg shadow-md z-20 min-w-max">
+        <div className={dropdownCls}>
           {mounted && (
-            <button
-              onClick={handleThemeToggle}
-              className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 rounded-t-lg cursor-pointer"
-            >
+            <button onClick={handleThemeToggle} className={themeBtnCls}>
               {isDark ? (
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <circle cx="12" cy="12" r="5"/>
@@ -73,10 +83,7 @@ export default function UserMenu({ userName }: Props) {
               {isDark ? "Light mode" : "Dark mode"}
             </button>
           )}
-          <button
-            onClick={handleSignOut}
-            className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 rounded-b-lg cursor-pointer"
-          >
+          <button onClick={handleSignOut} className={signOutBtnCls}>
             Sign out
           </button>
         </div>

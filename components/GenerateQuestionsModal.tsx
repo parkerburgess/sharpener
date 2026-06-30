@@ -96,59 +96,102 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
     }
   }
 
-  const canGenerate = !!promptText.trim() && levels.length > 0 && questionTypes.length > 0;
+  // #region Tailwind utility consts
+  const backdropCls =
+    "fixed inset-0 z-50 flex items-center justify-center bg-black/40";
+  const modalCardCls =
+    "bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-lg p-6";
+  const modalTitleCls = "text-base font-semibold text-neutral-800 mb-5";
+  const successWrapperCls = "flex flex-col items-center gap-4 py-10";
+  const successIconCls = "text-correct-600";
+  const successTextCls = "text-sm font-medium text-neutral-700";
+  const successCloseBtnCls =
+    "mt-2 text-sm border border-neutral-300 rounded-lg px-5 py-2 " +
+    "text-neutral-600 hover:bg-neutral-50 transition cursor-pointer";
+  const generatingWrapperCls = "flex flex-col items-center gap-3 py-10";
+  const spinnerCls = "animate-spin h-8 w-8 text-neutral-400";
+  const generatingTextCls = "text-sm font-medium text-neutral-600";
+  const generatingSubtextCls = "text-xs text-neutral-400";
+  const formGridCls = "grid gap-5";
+  const loadingTextCls = "text-sm text-neutral-400";
+  const fieldGroupCls = "grid gap-1.5";
+  const fieldLabelCls = "text-sm font-medium text-neutral-700";
+  const topicSelectCls =
+    "text-sm border border-neutral-300 rounded-lg px-3 py-2 " +
+    "text-neutral-800 bg-surface cursor-pointer";
+  const checkboxGroupCls = "flex flex-wrap gap-3";
+  const checkboxLabelCls =
+    "flex items-center gap-2 text-sm text-neutral-700 cursor-pointer";
+  const checkboxInputCls = "cursor-pointer";
+  const countInputCls =
+    "text-sm border border-neutral-300 rounded-lg px-3 py-2 " +
+    "text-neutral-800 bg-surface w-24";
+  const promptHeaderCls = "flex items-center justify-between";
+  const resetBtnCls =
+    "text-xs text-neutral-400 hover:text-neutral-600 transition cursor-pointer";
+  const promptTextareaCls =
+    "text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 " +
+    "bg-surface font-mono resize-y placeholder-gray-400";
+  const errorTextCls = "text-xs text-incorrect-500";
+  const infoTextCls = "text-xs text-neutral-400 flex items-center gap-1.5";
+  const actionsRowCls = "flex justify-end gap-2";
+  const cancelBtnCls =
+    "text-sm border border-neutral-300 rounded-lg px-4 py-2 " +
+    "text-neutral-600 hover:bg-neutral-50 transition cursor-pointer";
+  const generateBtnCls =
+    "text-sm bg-neutral-800 text-white rounded-lg px-4 py-2 " +
+    "hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed " +
+    "transition cursor-pointer";
+  // #endregion
 
   if (!open) return null;
 
+  const canGenerate = !!promptText.trim() && levels.length > 0 && questionTypes.length > 0;
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={handleBackdropClick}
-    >
-      <div
-        className="bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-lg p-6"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <h2 className="text-base font-semibold text-neutral-800 mb-5">Generate Questions</h2>
+    <div className={backdropCls} onClick={handleBackdropClick}>
+      <div className={modalCardCls} onClick={(e) => e.stopPropagation()}>
+        <h2 className={modalTitleCls}>Generate Questions</h2>
 
         {successCount !== null ? (
-          <div className="flex flex-col items-center gap-4 py-10">
-            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-correct-600">
+          <div className={successWrapperCls}>
+            <svg
+              width="40" height="40" viewBox="0 0 24 24" fill="none"
+              stroke="currentColor" strokeWidth="1.5"
+              strokeLinecap="round" strokeLinejoin="round"
+              className={successIconCls}
+            >
               <circle cx="12" cy="12" r="10" />
               <polyline points="9 12 11 14 15 10" />
             </svg>
-            <p className="text-sm font-medium text-neutral-700">
+            <p className={successTextCls}>
               Successfully generated {successCount} question{successCount !== 1 ? "s" : ""}
             </p>
-            <button
-              type="button"
-              onClick={handleClose}
-              className="mt-2 text-sm border border-neutral-300 rounded-lg px-5 py-2 text-neutral-600 hover:bg-neutral-50 transition cursor-pointer"
-            >
+            <button type="button" onClick={handleClose} className={successCloseBtnCls}>
               Close
             </button>
           </div>
         ) : generating ? (
-          <div className="flex flex-col items-center gap-3 py-10">
-            <svg className="animate-spin h-8 w-8 text-neutral-400" viewBox="0 0 24 24" fill="none">
+          <div className={generatingWrapperCls}>
+            <svg className={spinnerCls} viewBox="0 0 24 24" fill="none">
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
             </svg>
-            <p className="text-sm font-medium text-neutral-600">Generating with AI...</p>
-            <p className="text-xs text-neutral-400">This usually takes 15–30 seconds</p>
+            <p className={generatingTextCls}>Generating with AI...</p>
+            <p className={generatingSubtextCls}>This usually takes 15–30 seconds</p>
           </div>
         ) : (
-          <div className="grid gap-5">
+          <div className={formGridCls}>
             {!lookups ? (
-              <p className="text-sm text-neutral-400">Loading...</p>
+              <p className={loadingTextCls}>Loading...</p>
             ) : (
               <>
-                <div className="grid gap-1.5">
-                  <label className="text-sm font-medium text-neutral-700">Topic</label>
+                <div className={fieldGroupCls}>
+                  <label className={fieldLabelCls}>Topic</label>
                   <select
                     value={topic}
                     onChange={(e) => setTopic(e.target.value)}
-                    className="text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 bg-surface cursor-pointer"
+                    className={topicSelectCls}
                   >
                     {lookups.topics.map((t) => (
                       <option key={t.id} value={t.displayText}>{t.displayText}</option>
@@ -156,16 +199,16 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
                   </select>
                 </div>
 
-                <div className="grid gap-1.5">
-                  <label className="text-sm font-medium text-neutral-700">Levels</label>
-                  <div className="flex flex-wrap gap-3">
+                <div className={fieldGroupCls}>
+                  <label className={fieldLabelCls}>Levels</label>
+                  <div className={checkboxGroupCls}>
                     {lookups.levels.map((l) => (
-                      <label key={l.id} className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+                      <label key={l.id} className={checkboxLabelCls}>
                         <input
                           type="checkbox"
                           checked={levels.includes(l.displayText)}
                           onChange={() => toggleLevel(l.displayText)}
-                          className="cursor-pointer"
+                          className={checkboxInputCls}
                         />
                         {l.displayText}
                       </label>
@@ -173,16 +216,16 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
                   </div>
                 </div>
 
-                <div className="grid gap-1.5">
-                  <label className="text-sm font-medium text-neutral-700">Question Types</label>
-                  <div className="flex flex-wrap gap-3">
+                <div className={fieldGroupCls}>
+                  <label className={fieldLabelCls}>Question Types</label>
+                  <div className={checkboxGroupCls}>
                     {lookups.questionTypes.map((qt) => (
-                      <label key={qt.id} className="flex items-center gap-2 text-sm text-neutral-700 cursor-pointer">
+                      <label key={qt.id} className={checkboxLabelCls}>
                         <input
                           type="checkbox"
                           checked={questionTypes.includes(qt.displayText)}
                           onChange={() => toggleType(qt.displayText)}
-                          className="cursor-pointer"
+                          className={checkboxInputCls}
                         />
                         {qt.displayText}
                       </label>
@@ -190,27 +233,23 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
                   </div>
                 </div>
 
-                <div className="grid gap-1.5">
-                  <label className="text-sm font-medium text-neutral-700">Count</label>
+                <div className={fieldGroupCls}>
+                  <label className={fieldLabelCls}>Count</label>
                   <input
                     type="number"
                     min={1}
                     max={20}
                     value={count}
                     onChange={(e) => setCount(Number(e.target.value))}
-                    className="text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 bg-surface w-24"
+                    className={countInputCls}
                   />
                 </div>
 
-                <div className="grid gap-1.5">
-                  <div className="flex items-center justify-between">
-                    <label className="text-sm font-medium text-neutral-700">Prompt</label>
+                <div className={fieldGroupCls}>
+                  <div className={promptHeaderCls}>
+                    <label className={fieldLabelCls}>Prompt</label>
                     {userEditedPrompt && (
-                      <button
-                        type="button"
-                        onClick={resetPrompt}
-                        className="text-xs text-neutral-400 hover:text-neutral-600 transition cursor-pointer"
-                      >
+                      <button type="button" onClick={resetPrompt} className={resetBtnCls}>
                         Reset prompt
                       </button>
                     )}
@@ -219,27 +258,27 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
                     rows={8}
                     value={promptText}
                     onChange={handlePromptChange}
-                    className="text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 bg-surface font-mono resize-y placeholder-gray-400"
+                    className={promptTextareaCls}
                     placeholder="Select parameters above to generate the prompt"
                   />
                 </div>
 
-                {error && (
-                  <p className="text-xs text-incorrect-500">{error}</p>
-                )}
+                {error && <p className={errorTextCls}>{error}</p>}
 
-                <p className="text-xs text-neutral-400 flex items-center gap-1.5">
+                <p className={infoTextCls}>
                   <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
+                    <circle cx="12" cy="12" r="10"/>
+                    <line x1="12" y1="8" x2="12" y2="12"/>
+                    <line x1="12" y1="16" x2="12.01" y2="16"/>
                   </svg>
                   AI generation may take 15–30 seconds
                 </p>
 
-                <div className="flex justify-end gap-2">
+                <div className={actionsRowCls}>
                   <button
                     type="button"
                     onClick={handleClose}
-                    className="text-sm border border-neutral-300 rounded-lg px-4 py-2 text-neutral-600 hover:bg-neutral-50 transition cursor-pointer"
+                    className={cancelBtnCls}
                   >
                     Cancel
                   </button>
@@ -247,7 +286,7 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
                     type="button"
                     onClick={handleGenerate}
                     disabled={!canGenerate}
-                    className="text-sm bg-neutral-800 text-white rounded-lg px-4 py-2 hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed transition cursor-pointer"
+                    className={generateBtnCls}
                   >
                     Generate
                   </button>

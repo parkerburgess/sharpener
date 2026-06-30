@@ -27,13 +27,14 @@ export default async function RootLayout({
 }>) {
   const userName = (await getUserName()) ?? "User";
 
+  // #region Tailwind utility consts
+  const htmlCls = `${geistSans.variable} ${geistMono.variable} h-full antialiased`;
+  const bodyCls = "min-h-full flex flex-col";
+  // #endregion
+
   return (
-    <html
-      lang="en"
-      suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
-      <body className="min-h-full flex flex-col">
+    <html lang="en" suppressHydrationWarning className={htmlCls}>
+      <body className={bodyCls}>
         <Providers>
           <Banner userName={userName} />
           {children}

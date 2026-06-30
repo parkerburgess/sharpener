@@ -36,15 +36,27 @@ export default function ExamResults() {
       });
   }, [days, topicId]);
 
+  // #region Tailwind utility consts
+  const wrapperCls = "bg-card rounded-xl shadow p-6 flex flex-col gap-4 h-full";
+  const filterRowCls = "flex items-center gap-3";
+  const titleCls = "text-xl font-bold text-neutral-800 mr-1";
+  const filterSelectCls =
+    "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
+    "bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 " +
+    "focus:ring-brand-400 cursor-pointer";
+  const statusTextCls = "text-neutral-400 text-sm";
+  const cardsGridCls = "flex flex-wrap gap-3 justify-start";
+  // #endregion
+
   return (
-    <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-4 h-full">
-      <div className="flex items-center gap-3">
-        <h2 className="text-xl font-bold text-neutral-800 mr-1">Exam Results</h2>
+    <div className={wrapperCls}>
+      <div className={filterRowCls}>
+        <h2 className={titleCls}>Exam Results</h2>
 
         <select
           value={days}
           onChange={(e) => setDays(e.target.value)}
-          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
+          className={filterSelectCls}
         >
           {DATE_OPTIONS.map((o) => (
             <option key={o.value} value={o.value}>{o.label}</option>
@@ -54,7 +66,7 @@ export default function ExamResults() {
         <select
           value={topicId}
           onChange={(e) => setTopicId(e.target.value)}
-          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-400 cursor-pointer"
+          className={filterSelectCls}
         >
           <option value="">All topics</option>
           {topics.map((t) => (
@@ -64,11 +76,11 @@ export default function ExamResults() {
       </div>
 
       {loading ? (
-        <p className="text-neutral-400 text-sm">Loading...</p>
+        <p className={statusTextCls}>Loading...</p>
       ) : exams.length === 0 ? (
-        <p className="text-neutral-400 text-sm">No exams found.</p>
+        <p className={statusTextCls}>No exams found.</p>
       ) : (
-        <div className="flex flex-wrap gap-3 justify-start">
+        <div className={cardsGridCls}>
           {exams.map((exam) => <ExamResultCard key={exam.examId} exam={exam} />)}
         </div>
       )}

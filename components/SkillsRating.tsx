@@ -17,16 +17,23 @@ export default function SkillsRating() {
       });
   }, []);
 
+  // #region Tailwind utility consts
+  const wrapperCls = "bg-card rounded-xl shadow p-6 flex flex-col gap-4";
+  const titleCls = "text-xl font-bold text-neutral-800";
+  const statusTextCls = "text-neutral-400 text-sm";
+  const cardsRowCls = "flex flex-row gap-3";
+  // #endregion
+
   return (
-    <div className="bg-card rounded-xl shadow p-6 flex flex-col gap-4">
-      <h2 className="text-xl font-bold text-neutral-800">Skills Rating</h2>
+    <div className={wrapperCls}>
+      <h2 className={titleCls}>Skills Rating</h2>
 
       {loading ? (
-        <p className="text-neutral-400 text-sm">Loading...</p>
+        <p className={statusTextCls}>Loading...</p>
       ) : ratings.length === 0 ? (
-        <p className="text-neutral-400 text-sm">No exam data yet.</p>
+        <p className={statusTextCls}>No exam data yet.</p>
       ) : (
-        <div className="flex flex-row gap-3">
+        <div className={cardsRowCls}>
           {ratings.map((r) => (
             <SkillsRatingCard key={r.topicId} rating={r} />
           ))}

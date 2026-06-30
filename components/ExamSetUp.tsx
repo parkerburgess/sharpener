@@ -83,52 +83,93 @@ export default function ExamSetUp() {
     router.push(`/exam/${data.examId}`);
   }
 
-  if (!lookups) return <div className="text-neutral-400 text-sm">Loading...</div>;
+  // #region Tailwind utility consts
+  const loadingCls = "text-neutral-400 text-sm";
+  const wrapperCls =
+    "bg-card rounded-xl shadow border border-neutral-200 px-4 py-3 flex flex-col gap-2";
+  const formRowCls = "flex flex-row flex-wrap items-center gap-3 justify-between";
+  const titleSpanCls =
+    "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
+    "w-60 bg-neutral-50 truncate block";
+  const questionCountInputCls =
+    "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
+    "focus:outline-none focus:ring-2 focus:ring-brand-400 w-16";
+  const actionRowCls = "flex items-center gap-3 ml-auto";
+  const errorTextCls = "text-red-500 text-xs";
+  const startBtnCls =
+    "text-sm font-medium cursor-pointer transition " +
+    "text-brand-600 hover:text-brand-800 hover:bg-brand-50 " +
+    "border border-brand-300 rounded-lg px-3 py-1.5 " +
+    "disabled:opacity-40 disabled:cursor-not-allowed";
+  const summaryCls = "text-xs text-neutral-500 italic min-h-[1rem]";
+  // #endregion
+
+  if (!lookups) return <div className={loadingCls}>Loading...</div>;
 
   const summary = buildSummary(lookups, selectedTypes, selectedTopics, selectedLevels);
 
+  const isStartDisabled =
+    loading ||
+    !title.trim() ||
+    questionCount < 1 ||
+    !selectedLevels.length ||
+    !selectedTopics.length ||
+    !selectedTypes.length;
+
   return (
-    <div className="bg-card rounded-xl shadow border border-neutral-200 px-4 py-3 flex flex-col gap-2">
-      <div className="flex flex-row flex-wrap items-center gap-3 justify-between">
+    <div className={wrapperCls}>
+      <div className={formRowCls}>
         <span
           ref={titleSpanRef}
-          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 w-60 bg-neutral-50 truncate block"
+          className={titleSpanCls}
           title={titleTruncated ? title : undefined}
         >
-          {title || <span className="text-neutral-400">Exam title</span>}
+          {title || <span className={loadingCls}>Exam title</span>}
         </span>
 
         <input
           type="number"
           min={1}
-          className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 focus:outline-none focus:ring-2 focus:ring-brand-400 w-16"
+          className={questionCountInputCls}
           value={questionCount}
           onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
           title="Question count"
         />
 
-        <MultiSelect label="Topic" items={lookups.topics} selected={selectedTopics}
-          onToggle={(id) => toggleItem(id, selectedTopics, setSelectedTopics)} />
+        <MultiSelect
+          label="Topic"
+          items={lookups.topics}
+          selected={selectedTopics}
+          onToggle={(id) => toggleItem(id, selectedTopics, setSelectedTopics)}
+        />
 
-        <MultiSelect label="Level" items={lookups.levels} selected={selectedLevels}
-          onToggle={(id) => toggleItem(id, selectedLevels, setSelectedLevels)} />
+        <MultiSelect
+          label="Level"
+          items={lookups.levels}
+          selected={selectedLevels}
+          onToggle={(id) => toggleItem(id, selectedLevels, setSelectedLevels)}
+        />
 
-        <MultiSelect label="Type" items={lookups.questionTypes} selected={selectedTypes}
-          onToggle={(id) => toggleItem(id, selectedTypes, setSelectedTypes)} />
+        <MultiSelect
+          label="Type"
+          items={lookups.questionTypes}
+          selected={selectedTypes}
+          onToggle={(id) => toggleItem(id, selectedTypes, setSelectedTypes)}
+        />
 
-        <div className="flex items-center gap-3 ml-auto">
-          {error && <p className="text-red-500 text-xs">{error}</p>}
+        <div className={actionRowCls}>
+          {error && <p className={errorTextCls}>{error}</p>}
           <button
             onClick={handleStart}
-            disabled={loading || !title.trim() || questionCount < 1 || !selectedLevels.length || !selectedTopics.length || !selectedTypes.length}
-            className="text-sm text-brand-600 hover:text-brand-800 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer transition font-medium border border-brand-300 rounded-lg px-3 py-1.5 hover:bg-brand-50"
+            disabled={isStartDisabled}
+            className={startBtnCls}
           >
             {loading ? "Creating…" : "Start Exam"}
           </button>
         </div>
       </div>
 
-      <p className="text-xs text-neutral-500 italic min-h-[1rem]">{summary}</p>
+      <p className={summaryCls}>{summary}</p>
     </div>
   );
 }
@@ -147,8 +188,12 @@ function buildSummary(
 ): string | null {
   if (!selectedTopics.length && !selectedLevels.length) return null;
 
-  const topicNames = lookups.topics.filter((t) => selectedTopics.includes(t.id)).map((t) => t.displayText);
-  const levelNames = lookups.levels.filter((l) => selectedLevels.includes(l.id)).map((l) => l.displayText);
+  const topicNames = lookups.topics
+    .filter((t) => selectedTopics.includes(t.id))
+    .map((t) => t.displayText);
+  const levelNames = lookups.levels
+    .filter((l) => selectedLevels.includes(l.id))
+    .map((l) => l.displayText);
   const levelSuffix = levelNames.length === 1 ? "level" : "levels";
 
   return `This will test ${joinList(topicNames)} at a ${joinList(levelNames)} ${levelSuffix}.`;
@@ -179,26 +224,41 @@ function MultiSelect({
     }
   }
 
+  // #region Tailwind utility consts
+  const containerCls = "relative";
+  const triggerBtnCls =
+    "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
+    "bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 " +
+    "focus:ring-brand-400 flex items-center gap-1.5 cursor-pointer";
+  const chevronCls = "w-3.5 h-3.5 text-neutral-400";
+  const dropdownCls =
+    "absolute top-full mt-1 left-0 z-20 bg-card border border-neutral-200 " +
+    "rounded-lg shadow-md p-2 flex flex-col gap-1 min-w-max";
+  const itemLabelCls =
+    "flex items-center gap-2 text-sm text-neutral-800 cursor-pointer " +
+    "px-1 py-0.5 rounded hover:bg-neutral-50";
+  // #endregion
+
   return (
-    <div className="relative" ref={containerRef} onBlur={handleBlur}>
+    <div className={containerCls} ref={containerRef} onBlur={handleBlur}>
       <button
         type="button"
         onClick={() => setOpen((o) => !o)}
-        className="border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 focus:ring-brand-400 flex items-center gap-1.5 cursor-pointer"
+        className={triggerBtnCls}
       >
         {summary}
-        <svg className="w-3.5 h-3.5 text-neutral-400" fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
+        <svg className={chevronCls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
           <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
         </svg>
       </button>
 
       {open && (
         <div
-          className="absolute top-full mt-1 left-0 z-20 bg-card border border-neutral-200 rounded-lg shadow-md p-2 flex flex-col gap-1 min-w-max"
+          className={dropdownCls}
           onMouseDown={(e) => e.preventDefault()}
         >
           {items.map((item) => (
-            <label key={item.id} className="flex items-center gap-2 text-sm text-neutral-800 cursor-pointer px-1 py-0.5 rounded hover:bg-neutral-50">
+            <label key={item.id} className={itemLabelCls}>
               <input
                 type="checkbox"
                 checked={selected.includes(item.id)}
