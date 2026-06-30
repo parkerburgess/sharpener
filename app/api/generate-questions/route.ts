@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getAnthropicClient } from "@/lib/anthropic-client";
 import { dal } from "@/lib/dal";
 import type { ImportQuestion } from "@/lib/dal";
+import { unprocessable } from "@/lib/api-response";
 
 type GenerateQuestionsRequest = {
   prompt: string;
@@ -23,10 +24,7 @@ export async function POST(request: Request) {
   });
 
   if (message.stop_reason === "max_tokens") {
-    return NextResponse.json(
-      { error: "Response was cut off — try requesting fewer questions" },
-      { status: 422 }
-    );
+    return unprocessable("Response was cut off — try requesting fewer questions");
   }
 
   const rawText = message.content[0].type === "text" ? message.content[0].text : "";
@@ -35,10 +33,7 @@ export async function POST(request: Request) {
   try {
     parsed = JSON.parse(rawText) as { questions: ImportQuestion[] };
   } catch {
-    return NextResponse.json(
-      { error: "Claude returned invalid JSON — try again or reduce the question count" },
-      { status: 422 }
-    );
+    return unprocessable("Claude returned invalid JSON — try again or reduce the question count");
   }
 
   await dal.importQuestions(parsed.questions);

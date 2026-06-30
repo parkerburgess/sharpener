@@ -25,6 +25,16 @@ export default function UserMenu({ userName }: Props) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  function handleToggle(e: React.MouseEvent) {
+    e.stopPropagation();
+    setOpen(!open);
+  }
+
+  function handleThemeToggle(e: React.MouseEvent) {
+    e.stopPropagation();
+    setTheme(isDark ? "light" : "dark");
+  }
+
   async function handleSignOut() {
     await fetch("/api/auth/logout", { method: "POST" });
     window.location.href = "https://wanderingparker.com";
@@ -35,7 +45,7 @@ export default function UserMenu({ userName }: Props) {
   return (
     <div ref={ref} className="relative">
       <button
-        onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+        onClick={handleToggle}
         className="text-sm border border-neutral-300 rounded-lg px-3 py-1.5 text-neutral-600 hover:bg-neutral-50 transition cursor-pointer"
       >
         {userName}
@@ -44,7 +54,7 @@ export default function UserMenu({ userName }: Props) {
         <div className="absolute right-0 top-full mt-1 bg-card border border-neutral-200 rounded-lg shadow-md z-20 min-w-max">
           {mounted && (
             <button
-              onClick={(e) => { e.stopPropagation(); setTheme(isDark ? "light" : "dark"); }}
+              onClick={handleThemeToggle}
               className="flex items-center gap-3 w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 rounded-t-lg cursor-pointer"
             >
               {isDark ? (

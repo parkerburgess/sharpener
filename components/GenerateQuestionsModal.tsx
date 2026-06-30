@@ -51,6 +51,16 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
     );
   }
 
+  function handleBackdropClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    handleClose();
+  }
+
+  function handlePromptChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
+    setPromptText(e.target.value);
+    setUserEditedPrompt(true);
+  }
+
   function resetPrompt() {
     setUserEditedPrompt(false);
     setPromptText(buildQuestionPrompt({ topic, levels, questionTypes, count }));
@@ -93,7 +103,7 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
   return (
     <div
       className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-      onClick={(e) => { e.stopPropagation(); handleClose(); }}
+      onClick={handleBackdropClick}
     >
       <div
         className="bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-lg p-6"
@@ -208,7 +218,7 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
                   <textarea
                     rows={8}
                     value={promptText}
-                    onChange={(e) => { setPromptText(e.target.value); setUserEditedPrompt(true); }}
+                    onChange={handlePromptChange}
                     className="text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 bg-surface font-mono resize-y placeholder-gray-400"
                     placeholder="Select parameters above to generate the prompt"
                   />

@@ -30,7 +30,10 @@ export default function ExamResults() {
     if (topicId) params.set("topicId", topicId);
     fetch(`/api/exams?${params}`)
       .then((r) => r.json())
-      .then((data) => { setExams(data); setLoading(false); });
+      .then((data) => {
+        setExams(data);
+        setLoading(false);
+      });
   }, [days, topicId]);
 
   return (

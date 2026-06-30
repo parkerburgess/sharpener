@@ -11,7 +11,10 @@ export default function SkillsRating() {
   useEffect(() => {
     fetch("/api/skills")
       .then((r) => r.json())
-      .then((data) => { setRatings(data); setLoading(false); });
+      .then((data) => {
+        setRatings(data);
+        setLoading(false);
+      });
   }, []);
 
   return (

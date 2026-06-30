@@ -69,6 +69,43 @@ export default function AppActions() {
     }
   }
 
+  function handleMenuToggle(e: React.MouseEvent) {
+    e.stopPropagation();
+    setOpen(!open);
+  }
+
+  function handleImportClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    setOpen(false);
+    importRef.current?.click();
+  }
+
+  function handleGenerateClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    setOpen(false);
+    setShowGenerateModal(true);
+  }
+
+  function handleCreateTopicClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    openTopicModal();
+  }
+
+  function handleTopicModalBackdropClick(e: React.MouseEvent) {
+    e.stopPropagation();
+    closeTopicModal();
+  }
+
+  function handleTopicFormSubmit(e: React.SyntheticEvent) {
+    e.preventDefault();
+    void handleCreateTopic();
+  }
+
+  function handleTopicNameChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setNewTopicName(e.target.value);
+    setTopicError(null);
+  }
+
   async function handleCreateTopic() {
     if (!newTopicName.trim()) return;
     setSavingTopic(true);
@@ -95,7 +132,7 @@ export default function AppActions() {
     <>
       <div ref={menuRef} className="relative">
         <button
-          onClick={(e) => { e.stopPropagation(); setOpen(!open); }}
+          onClick={handleMenuToggle}
           aria-label="App menu"
           className="border border-neutral-300 rounded-lg p-2 text-neutral-600 hover:bg-neutral-50 transition cursor-pointer"
         >
@@ -116,19 +153,19 @@ export default function AppActions() {
         {open && (
           <div className="absolute left-0 top-full mt-1 bg-card border border-neutral-200 rounded-lg shadow-md z-20 min-w-48">
             <button
-              onClick={(e) => { e.stopPropagation(); setOpen(false); importRef.current?.click(); }}
+              onClick={handleImportClick}
               className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 rounded-t-lg cursor-pointer"
             >
               Import Questions
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); setOpen(false); setShowGenerateModal(true); }}
+              onClick={handleGenerateClick}
               className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 cursor-pointer border-t border-neutral-100"
             >
               Generate Questions
             </button>
             <button
-              onClick={(e) => { e.stopPropagation(); openTopicModal(); }}
+              onClick={handleCreateTopicClick}
               className="block w-full text-left px-4 py-2.5 text-sm text-neutral-600 hover:bg-neutral-50 rounded-b-lg cursor-pointer border-t border-neutral-100"
             >
               Create New Topic
@@ -142,7 +179,7 @@ export default function AppActions() {
       {showTopicModal && (
         <div
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/40"
-          onClick={(e) => { e.stopPropagation(); closeTopicModal(); }}
+          onClick={handleTopicModalBackdropClick}
         >
           <div
             className="bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-sm p-6"
@@ -150,13 +187,13 @@ export default function AppActions() {
           >
             <h2 className="text-base font-semibold text-neutral-800 mb-4">Create New Topic</h2>
 
-            <form onSubmit={(e) => { e.preventDefault(); void handleCreateTopic(); }} className="grid gap-4">
+            <form onSubmit={handleTopicFormSubmit} className="grid gap-4">
               <div className="grid gap-1.5">
                 <label className="text-sm font-medium text-neutral-700">Topic name</label>
                 <input
                   autoFocus
                   value={newTopicName}
-                  onChange={(e) => { setNewTopicName(e.target.value); setTopicError(null); }}
+                  onChange={handleTopicNameChange}
                   placeholder="e.g. React Hooks"
                   className="text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 bg-surface placeholder-gray-400"
                 />

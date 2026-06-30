@@ -49,6 +49,12 @@ export default function ReviewPage() {
     setCurrentIndex((i) => Math.max(0, i - 1));
   }
 
+  function handleMissedOnlyChange(e: React.ChangeEvent<HTMLInputElement>) {
+    setMissedOnly(e.target.checked);
+    setCurrentIndex(0);
+    setDone(false);
+  }
+
   if (loading) {
     return (
       <main className="min-h-screen bg-surface flex items-center justify-center">
@@ -88,7 +94,7 @@ export default function ReviewPage() {
               <input
                 type="checkbox"
                 checked={missedOnly}
-                onChange={(e) => { setMissedOnly(e.target.checked); setCurrentIndex(0); setDone(false); }}
+                onChange={handleMissedOnlyChange}
               />
               <span className="text-caution-800">Show missed only</span>
             </label>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { dal } from "@/lib/dal";
+import { serverError } from "@/lib/api-response";
 
 export async function GET(
   _request: Request,
@@ -11,6 +12,6 @@ export async function GET(
     return NextResponse.json(questions);
   } catch (err) {
     console.error("[API] GET exam questions failed", err);
-    return NextResponse.json({ error: "Failed to load questions" }, { status: 500 });
+    return serverError("Failed to load questions");
   }
 }
