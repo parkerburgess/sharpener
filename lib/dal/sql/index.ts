@@ -31,13 +31,13 @@ export const sqlDataAccess: IDataAccess = {
       const pool = await getPool();
       const [levelsResult, topicsResult, questionTypesResult] = await Promise.all([
         pool.request().query<{ LevelId: number; DisplayText: string }>(
-          "SELECT LevelId, DisplayText FROM [skill].Level ORDER BY LevelId"
+          "SELECT LevelId, DisplayText FROM [sharpener].Level ORDER BY LevelId"
         ),
         pool.request().query<{ TopicId: number; DisplayText: string }>(
-          "SELECT TopicId, DisplayText FROM [skill].Topic ORDER BY TopicId"
+          "SELECT TopicId, DisplayText FROM [sharpener].Topic ORDER BY TopicId"
         ),
         pool.request().query<{ QuestionTypeId: number; DisplayText: string }>(
-          "SELECT QuestionTypeId, DisplayText FROM [skill].QuestionType ORDER BY QuestionTypeId"
+          "SELECT QuestionTypeId, DisplayText FROM [sharpener].QuestionType ORDER BY QuestionTypeId"
         ),
       ]);
       return {
@@ -67,7 +67,7 @@ export const sqlDataAccess: IDataAccess = {
         .request()
         .input("DisplayText", sql.NVarChar(100), displayText)
         .query<{ TopicId: number }>(`
-          INSERT INTO [skill].Topic (DisplayText) VALUES (@DisplayText);
+          INSERT INTO [sharpener].Topic (DisplayText) VALUES (@DisplayText);
           SELECT SCOPE_IDENTITY() AS TopicId;
         `);
       return result.recordset[0].TopicId;
@@ -87,7 +87,7 @@ export const sqlDataAccess: IDataAccess = {
         .input("title", sql.NVarChar(200), input.title)
         .input("dateTaken", sql.DateTime2, new Date())
         .query<{ ExamId: number }>(`
-          INSERT INTO [skill].Exam (Title, DateTaken) VALUES (@title, @dateTaken);
+          INSERT INTO [sharpener].Exam (Title, DateTaken) VALUES (@title, @dateTaken);
           SELECT SCOPE_IDENTITY() AS ExamId;
         `);
       const examId = examResult.recordset[0].ExamId;
@@ -97,19 +97,19 @@ export const sqlDataAccess: IDataAccess = {
         await pool.request()
           .input("examId", sql.Int, examId)
           .input("levelId", sql.Int, levelId)
-          .query("INSERT INTO [skill].Exam_Level (ExamId, LevelId) VALUES (@examId, @levelId)");
+          .query("INSERT INTO [sharpener].Exam_Level (ExamId, LevelId) VALUES (@examId, @levelId)");
       }
       for (const topicId of input.topicIds) {
         await pool.request()
           .input("examId", sql.Int, examId)
           .input("topicId", sql.Int, topicId)
-          .query("INSERT INTO [skill].Exam_Topic (ExamId, TopicId) VALUES (@examId, @topicId)");
+          .query("INSERT INTO [sharpener].Exam_Topic (ExamId, TopicId) VALUES (@examId, @topicId)");
       }
       for (const questionTypeId of input.questionTypeIds) {
         await pool.request()
           .input("examId", sql.Int, examId)
           .input("questionTypeId", sql.Int, questionTypeId)
-          .query("INSERT INTO [skill].Exam_QuestionType (ExamId, QuestionTypeId) VALUES (@examId, @questionTypeId)");
+          .query("INSERT INTO [sharpener].Exam_QuestionType (ExamId, QuestionTypeId) VALUES (@examId, @questionTypeId)");
       }
 
       // Build IN list parameters for the question query
@@ -125,7 +125,7 @@ export const sqlDataAccess: IDataAccess = {
 
       const questionsResult = await qReq.query<{ QuestionId: number; QuestionTypeId: number }>(`
         SELECT TOP(@questionCount) Q.QuestionId, Q.QuestionTypeId
-        FROM [skill].Question Q
+        FROM [sharpener].Question Q
         WHERE Q.LevelId IN (${levelParams})
           AND Q.TopicId IN (${topicParams})
           AND Q.QuestionTypeId IN (${qtParams})
@@ -138,10 +138,10 @@ export const sqlDataAccess: IDataAccess = {
         await pool.request()
           .input("examId", sql.Int, examId)
           .query(`
-            DELETE FROM [skill].Exam_Level WHERE ExamId = @examId;
-            DELETE FROM [skill].Exam_Topic WHERE ExamId = @examId;
-            DELETE FROM [skill].Exam_QuestionType WHERE ExamId = @examId;
-            DELETE FROM [skill].Exam WHERE ExamId = @examId;
+            DELETE FROM [sharpener].Exam_Level WHERE ExamId = @examId;
+            DELETE FROM [sharpener].Exam_Topic WHERE ExamId = @examId;
+            DELETE FROM [sharpener].Exam_QuestionType WHERE ExamId = @examId;
+            DELETE FROM [sharpener].Exam WHERE ExamId = @examId;
           `);
         throw new Error("NO_QUESTIONS_MATCHED");
       }
@@ -157,7 +157,7 @@ export const sqlDataAccess: IDataAccess = {
           .input("questionId", sql.Int, QuestionId)
           .input("sortOrder", sql.Int, sortOrder)
           .query<{ ResultId: number }>(`
-            INSERT INTO [skill].Result (ExamId, QuestionId, SortOrder)
+            INSERT INTO [sharpener].Result (ExamId, QuestionId, SortOrder)
             VALUES (@examId, @questionId, @sortOrder);
             SELECT SCOPE_IDENTITY() AS ResultId;
           `);
@@ -167,7 +167,7 @@ export const sqlDataAccess: IDataAccess = {
         const optionsResult = await pool.request()
           .input("questionId", sql.Int, QuestionId)
           .query<{ AnswerOptionId: number }>(`
-            SELECT AnswerOptionId FROM [skill].AnswerOption WHERE QuestionId = @questionId
+            SELECT AnswerOptionId FROM [sharpener].AnswerOption WHERE QuestionId = @questionId
           `);
 
         if (optionsResult.recordset.length > 0) {
@@ -179,7 +179,7 @@ export const sqlDataAccess: IDataAccess = {
               .input("displayKey", sql.Char(1), DISPLAY_KEYS[k])
               .input("sortOrder", sql.Int, k + 1)
               .query(`
-                INSERT INTO [skill].Result_AnswerOption (ResultId, AnswerOptionId, DisplayKey, SortOrder)
+                INSERT INTO [sharpener].Result_AnswerOption (ResultId, AnswerOptionId, DisplayKey, SortOrder)
                 VALUES (@resultId, @answerOptionId, @displayKey, @sortOrder)
               `);
           }
@@ -217,9 +217,9 @@ export const sqlDataAccess: IDataAccess = {
             L.DisplayText AS Level,
             Q.Text, Q.Explanation,
             R.AnswerOptionId, R.TextResponse, R.GradedResponse
-          FROM [skill].Result R
-          JOIN [skill].Question Q ON Q.QuestionId = R.QuestionId
-          JOIN [skill].Level L ON L.LevelId = Q.LevelId
+          FROM [sharpener].Result R
+          JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId
+          JOIN [sharpener].Level L ON L.LevelId = Q.LevelId
           WHERE R.ExamId = @examId
           ORDER BY R.SortOrder
         `);
@@ -237,9 +237,9 @@ export const sqlDataAccess: IDataAccess = {
           SELECT
             RAO.ResultId, RAO.AnswerOptionId, RAO.DisplayKey, RAO.SortOrder,
             AO.Text, AO.IsCorrectAnswer
-          FROM [skill].Result_AnswerOption RAO
-          JOIN [skill].Result R ON R.ResultId = RAO.ResultId
-          JOIN [skill].AnswerOption AO ON AO.AnswerOptionId = RAO.AnswerOptionId
+          FROM [sharpener].Result_AnswerOption RAO
+          JOIN [sharpener].Result R ON R.ResultId = RAO.ResultId
+          JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = RAO.AnswerOptionId
           WHERE R.ExamId = @examId
           ORDER BY RAO.ResultId, RAO.SortOrder
         `);
@@ -289,7 +289,7 @@ export const sqlDataAccess: IDataAccess = {
           .input("resultId", sql.Int, resultId)
           .input("answerOptionId", sql.Int, answer.answerOptionId)
           .query(`
-            UPDATE [skill].Result
+            UPDATE [sharpener].Result
             SET AnswerOptionId = @answerOptionId
             WHERE ResultId = @resultId
           `);
@@ -300,7 +300,7 @@ export const sqlDataAccess: IDataAccess = {
           .input("textResponse", sql.NVarChar(sql.MAX), answer.textResponse)
           .input("gradedResponse", sql.Bit, answer.gradedResponse)
           .query(`
-            UPDATE [skill].Result
+            UPDATE [sharpener].Result
             SET TextResponse = @textResponse, GradedResponse = @gradedResponse
             WHERE ResultId = @resultId
           `);
@@ -326,7 +326,7 @@ export const sqlDataAccess: IDataAccess = {
       let topicFilter = "";
       if (filters.topicId != null) {
         req.input("topicId", sql.Int, filters.topicId);
-        topicFilter = "AND EXISTS (SELECT 1 FROM [skill].Exam_Topic ET WHERE ET.ExamId = E.ExamId AND ET.TopicId = @topicId)";
+        topicFilter = "AND EXISTS (SELECT 1 FROM [sharpener].Exam_Topic ET WHERE ET.ExamId = E.ExamId AND ET.TopicId = @topicId)";
       }
 
       const summaryResult = await req.query<{
@@ -344,9 +344,9 @@ export const sqlDataAccess: IDataAccess = {
             WHEN R.GradedResponse = 1 THEN 1
             ELSE 0
           END) AS CorrectCount
-        FROM [skill].Exam E
-        JOIN [skill].Result R ON R.ExamId = E.ExamId
-        LEFT JOIN [skill].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+        FROM [sharpener].Exam E
+        JOIN [sharpener].Result R ON R.ExamId = E.ExamId
+        LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
         WHERE 1=1
           ${dateFilter}
           ${topicFilter}
@@ -360,8 +360,8 @@ export const sqlDataAccess: IDataAccess = {
       const idList = examIds.join(",");
       const topicsResult = await pool.request().query<{ ExamId: number; DisplayText: string }>(`
         SELECT ET.ExamId, T.DisplayText
-        FROM [skill].Exam_Topic ET
-        JOIN [skill].Topic T ON T.TopicId = ET.TopicId
+        FROM [sharpener].Exam_Topic ET
+        JOIN [sharpener].Topic T ON T.TopicId = ET.TopicId
         WHERE ET.ExamId IN (${idList})
       `);
 
@@ -384,10 +384,10 @@ export const sqlDataAccess: IDataAccess = {
             WHEN R.GradedResponse = 1 THEN 1
             ELSE 0
           END) AS CorrectCount
-        FROM [skill].Result R
-        JOIN [skill].Question Q ON Q.QuestionId = R.QuestionId
-        JOIN [skill].Level L ON L.LevelId = Q.LevelId
-        LEFT JOIN [skill].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+        FROM [sharpener].Result R
+        JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId
+        JOIN [sharpener].Level L ON L.LevelId = Q.LevelId
+        LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
         WHERE R.ExamId IN (${idList})
         GROUP BY R.ExamId, L.DisplayText
       `);
@@ -442,12 +442,12 @@ export const sqlDataAccess: IDataAccess = {
               ELSE 0.0
             END
           AS FLOAT)) * 100 AS AverageScore
-        FROM [skill].Topic T
-        JOIN [skill].Exam_Topic ET ON ET.TopicId = T.TopicId
-        JOIN [skill].Exam E ON E.ExamId = ET.ExamId
-        JOIN [skill].Result R ON R.ExamId = E.ExamId
-        JOIN [skill].Question Q ON Q.QuestionId = R.QuestionId AND Q.TopicId = T.TopicId
-        LEFT JOIN [skill].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+        FROM [sharpener].Topic T
+        JOIN [sharpener].Exam_Topic ET ON ET.TopicId = T.TopicId
+        JOIN [sharpener].Exam E ON E.ExamId = ET.ExamId
+        JOIN [sharpener].Result R ON R.ExamId = E.ExamId
+        JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId AND Q.TopicId = T.TopicId
+        LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
         GROUP BY T.TopicId, T.DisplayText
         ORDER BY T.DisplayText
       `);
@@ -472,7 +472,7 @@ export const sqlDataAccess: IDataAccess = {
         const topicResult = await pool.request()
           .input("displayText", sql.NVarChar(100), q.topic)
           .query<{ TopicId: number }>(
-            "SELECT TopicId FROM [skill].Topic WHERE DisplayText = @displayText"
+            "SELECT TopicId FROM [sharpener].Topic WHERE DisplayText = @displayText"
           );
         if (topicResult.recordset.length === 0)
           throw new Error(`Unknown topic: "${q.topic}"`);
@@ -481,7 +481,7 @@ export const sqlDataAccess: IDataAccess = {
         const levelResult = await pool.request()
           .input("displayText", sql.NVarChar(100), q.level)
           .query<{ LevelId: number }>(
-            "SELECT LevelId FROM [skill].Level WHERE DisplayText = @displayText"
+            "SELECT LevelId FROM [sharpener].Level WHERE DisplayText = @displayText"
           );
         if (levelResult.recordset.length === 0)
           throw new Error(`Unknown level: "${q.level}"`);
@@ -490,7 +490,7 @@ export const sqlDataAccess: IDataAccess = {
         const qtResult = await pool.request()
           .input("displayText", sql.NVarChar(100), q.questionType)
           .query<{ QuestionTypeId: number }>(
-            "SELECT QuestionTypeId FROM [skill].QuestionType WHERE DisplayText = @displayText"
+            "SELECT QuestionTypeId FROM [sharpener].QuestionType WHERE DisplayText = @displayText"
           );
         if (qtResult.recordset.length === 0)
           throw new Error(`Unknown question type: "${q.questionType}"`);
@@ -504,7 +504,7 @@ export const sqlDataAccess: IDataAccess = {
           .input("text", sql.NVarChar(sql.MAX), q.text)
           .input("explanation", sql.NVarChar(sql.MAX), q.explanation)
           .query<{ QuestionId: number }>(`
-            INSERT INTO [skill].Question (TopicId, LevelId, QuestionTypeId, Text, Explanation)
+            INSERT INTO [sharpener].Question (TopicId, LevelId, QuestionTypeId, Text, Explanation)
             VALUES (@topicId, @levelId, @questionTypeId, @text, @explanation);
             SELECT SCOPE_IDENTITY() AS QuestionId;
           `);
@@ -517,7 +517,7 @@ export const sqlDataAccess: IDataAccess = {
             .input("text", sql.NVarChar(sql.MAX), opt.text)
             .input("isCorrectAnswer", sql.Bit, opt.isCorrectAnswer)
             .query(`
-              INSERT INTO [skill].AnswerOption (QuestionId, Text, IsCorrectAnswer)
+              INSERT INTO [sharpener].AnswerOption (QuestionId, Text, IsCorrectAnswer)
               VALUES (@questionId, @text, @isCorrectAnswer)
             `);
         }
