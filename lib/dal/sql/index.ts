@@ -77,17 +77,18 @@ export const sqlDataAccess: IDataAccess = {
     }
   },
 
-  async createExam(input: CreateExamInput): Promise<number> {
+  async createExam(userId: string, input: CreateExamInput): Promise<number> {
     try {
       const pool = await getPool();
 
       // Create the Exam record
       const examResult = await pool
         .request()
+        .input("userId", sql.NVarChar(50), userId)
         .input("title", sql.NVarChar(200), input.title)
         .input("dateTaken", sql.DateTime2, new Date())
         .query<{ ExamId: number }>(`
-          INSERT INTO [sharpener].Exam (Title, DateTaken) VALUES (@title, @dateTaken);
+          INSERT INTO [sharpener].Exam (UserId, Title, DateTaken) VALUES (@userId, @title, @dateTaken);
           SELECT SCOPE_IDENTITY() AS ExamId;
         `);
       const examId = examResult.recordset[0].ExamId;
@@ -195,12 +196,13 @@ export const sqlDataAccess: IDataAccess = {
     }
   },
 
-  async getExamQuestions(examId: number): Promise<ExamQuestionView[]> {
+  async getExamQuestions(userId: string, examId: number): Promise<ExamQuestionView[]> {
     try {
       const pool = await getPool();
 
       const resultsResult = await pool.request()
         .input("examId", sql.Int, examId)
+        .input("userId", sql.NVarChar(50), userId)
         .query<{
           ResultId: number;
           SortOrder: number;
@@ -218,14 +220,16 @@ export const sqlDataAccess: IDataAccess = {
             Q.Text, Q.Explanation,
             R.AnswerOptionId, R.TextResponse, R.GradedResponse
           FROM [sharpener].Result R
+          JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
           JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId
           JOIN [sharpener].Level L ON L.LevelId = Q.LevelId
-          WHERE R.ExamId = @examId
+          WHERE R.ExamId = @examId AND E.UserId = @userId
           ORDER BY R.SortOrder
         `);
 
       const optionsResult = await pool.request()
         .input("examId", sql.Int, examId)
+        .input("userId", sql.NVarChar(50), userId)
         .query<{
           ResultId: number;
           AnswerOptionId: number;
@@ -239,8 +243,9 @@ export const sqlDataAccess: IDataAccess = {
             AO.Text, AO.IsCorrectAnswer
           FROM [sharpener].Result_AnswerOption RAO
           JOIN [sharpener].Result R ON R.ResultId = RAO.ResultId
+          JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
           JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = RAO.AnswerOptionId
-          WHERE R.ExamId = @examId
+          WHERE R.ExamId = @examId AND E.UserId = @userId
           ORDER BY RAO.ResultId, RAO.SortOrder
         `);
 
@@ -278,32 +283,43 @@ export const sqlDataAccess: IDataAccess = {
   },
 
   async answerQuestion(
+    userId: string,
     resultId: number,
     answer: AnswerMultipleChoiceInput | AnswerTextInput
   ): Promise<{ isCorrect: boolean }> {
     try {
       const pool = await getPool();
 
+      // Result has no UserId of its own — ownership is enforced by joining
+      // back to Exam, same as getExamQuestions.
       if ("answerOptionId" in answer) {
-        await pool.request()
+        const updateResult = await pool.request()
           .input("resultId", sql.Int, resultId)
+          .input("userId", sql.NVarChar(50), userId)
           .input("answerOptionId", sql.Int, answer.answerOptionId)
           .query(`
-            UPDATE [sharpener].Result
-            SET AnswerOptionId = @answerOptionId
-            WHERE ResultId = @resultId
+            UPDATE R
+            SET R.AnswerOptionId = @answerOptionId
+            FROM [sharpener].Result R
+            JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
+            WHERE R.ResultId = @resultId AND E.UserId = @userId
           `);
+        if (updateResult.rowsAffected[0] === 0) throw new Error(`Result ${resultId} not found`);
         return { isCorrect: false };
       } else {
-        await pool.request()
+        const updateResult = await pool.request()
           .input("resultId", sql.Int, resultId)
+          .input("userId", sql.NVarChar(50), userId)
           .input("textResponse", sql.NVarChar(sql.MAX), answer.textResponse)
           .input("gradedResponse", sql.Bit, answer.gradedResponse)
           .query(`
-            UPDATE [sharpener].Result
-            SET TextResponse = @textResponse, GradedResponse = @gradedResponse
-            WHERE ResultId = @resultId
+            UPDATE R
+            SET R.TextResponse = @textResponse, R.GradedResponse = @gradedResponse
+            FROM [sharpener].Result R
+            JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
+            WHERE R.ResultId = @resultId AND E.UserId = @userId
           `);
+        if (updateResult.rowsAffected[0] === 0) throw new Error(`Result ${resultId} not found`);
         return { isCorrect: answer.gradedResponse };
       }
     } catch (err) {
@@ -312,11 +328,11 @@ export const sqlDataAccess: IDataAccess = {
     }
   },
 
-  async getExams(filters: { days?: number; topicId?: number }): Promise<ExamSummary[]> {
+  async getExams(userId: string, filters: { days?: number; topicId?: number }): Promise<ExamSummary[]> {
     try {
       const pool = await getPool();
 
-      const req = pool.request();
+      const req = pool.request().input("userId", sql.NVarChar(50), userId);
       let dateFilter = "";
       if (filters.days != null) {
         req.input("days", sql.Int, filters.days);
@@ -347,7 +363,7 @@ export const sqlDataAccess: IDataAccess = {
         FROM [sharpener].Exam E
         JOIN [sharpener].Result R ON R.ExamId = E.ExamId
         LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
-        WHERE 1=1
+        WHERE E.UserId = @userId
           ${dateFilter}
           ${topicFilter}
         GROUP BY E.ExamId, E.Title, E.DateTaken
@@ -422,10 +438,12 @@ export const sqlDataAccess: IDataAccess = {
     }
   },
 
-  async getSkillRatings(): Promise<TopicRating[]> {
+  async getSkillRatings(userId: string): Promise<TopicRating[]> {
     try {
       const pool = await getPool();
-      const result = await pool.request().query<{
+      const result = await pool.request()
+        .input("userId", sql.NVarChar(50), userId)
+        .query<{
         TopicId: number;
         DisplayText: string;
         AverageScore: number;
@@ -448,6 +466,7 @@ export const sqlDataAccess: IDataAccess = {
         JOIN [sharpener].Result R ON R.ExamId = E.ExamId
         JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId AND Q.TopicId = T.TopicId
         LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+        WHERE E.UserId = @userId
         GROUP BY T.TopicId, T.DisplayText
         ORDER BY T.DisplayText
       `);

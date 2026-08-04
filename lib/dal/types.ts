@@ -67,13 +67,14 @@ export type ImportQuestion = {
 export interface IDataAccess {
   getLookups(): Promise<Lookups>;
   createTopic(displayText: string): Promise<number>;
-  createExam(input: CreateExamInput): Promise<number>;
-  getExamQuestions(examId: number): Promise<ExamQuestionView[]>;
+  createExam(userId: string, input: CreateExamInput): Promise<number>;
+  getExamQuestions(userId: string, examId: number): Promise<ExamQuestionView[]>;
   answerQuestion(
+    userId: string,
     resultId: number,
     answer: AnswerMultipleChoiceInput | AnswerTextInput
   ): Promise<{ isCorrect: boolean }>;
-  getExams(filters: { days?: number; topicId?: number }): Promise<ExamSummary[]>;
-  getSkillRatings(): Promise<TopicRating[]>;
+  getExams(userId: string, filters: { days?: number; topicId?: number }): Promise<ExamSummary[]>;
+  getSkillRatings(userId: string): Promise<TopicRating[]>;
   importQuestions(questions: ImportQuestion[]): Promise<void>;
 }

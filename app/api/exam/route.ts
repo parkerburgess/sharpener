@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { dal } from "@/lib/dal";
 import type { CreateExamInput } from "@/lib/dal";
+import { getUserId } from "@/lib/auth";
 import { badRequest } from "@/lib/api-response";
 
 export async function POST(request: Request) {
@@ -14,7 +15,8 @@ export async function POST(request: Request) {
   }
 
   try {
-    const examId = await dal.createExam(body);
+    const userId = await getUserId();
+    const examId = await dal.createExam(userId, body);
     return NextResponse.json({ examId });
   } catch (err) {
     if (err instanceof Error && err.message === "NO_QUESTIONS_MATCHED") {

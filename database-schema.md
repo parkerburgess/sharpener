@@ -26,12 +26,20 @@ CREATE TABLE [sharpener].ConfidenceLevel (
     CONSTRAINT UQ_ConfidenceLevel_DisplayText UNIQUE (DisplayText)
 );
 
+-- UserId holds the auth-wandering-parker service's cuid()-based User.id.
+-- That User table lives in a separate service/database, so there is no
+-- local FK here. Result/Exam_Level/Exam_Topic/Exam_QuestionType don't need
+-- their own UserId — every query reaches them via ExamId (or ResultId ->
+-- Exam), so ownership is enforced by joining back to Exam.
 CREATE TABLE [sharpener].Exam (
     ExamId      INT             NOT NULL IDENTITY(1,1),
+    UserId      NVARCHAR(50)    NOT NULL,
     Title       NVARCHAR(200)   NOT NULL,
     DateTaken   DATETIME2       NOT NULL,
     CONSTRAINT PK_Exam PRIMARY KEY (ExamId)
 );
+
+CREATE INDEX IX_Exam_UserId ON [sharpener].Exam (UserId);
 
 CREATE TABLE [sharpener].Question (
     QuestionId      INT             NOT NULL IDENTITY(1,1),
