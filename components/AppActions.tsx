@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { Modal } from "@parkerburgess/wandering-parker-ui";
 import type { LookupItem } from "@/lib/dal/types";
 import GenerateQuestionsModal from "@/components/GenerateQuestionsModal";
 
@@ -91,11 +92,6 @@ export default function AppActions() {
     openTopicModal();
   }
 
-  function handleTopicModalBackdropClick(e: React.MouseEvent) {
-    e.stopPropagation();
-    closeTopicModal();
-  }
-
   function handleTopicFormSubmit(e: React.SyntheticEvent) {
     e.preventDefault();
     void handleCreateTopic();
@@ -146,10 +142,6 @@ export default function AppActions() {
     "block w-full text-left px-4 py-2.5 text-sm text-neutral-600 " +
     "hover:bg-neutral-50 rounded-b-lg cursor-pointer border-t border-neutral-100";
   const importInputCls = "hidden";
-  const backdropCls =
-    "fixed inset-0 z-50 flex items-center justify-center bg-black/40";
-  const topicModalCardCls =
-    "bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-sm p-6";
   const topicModalTitleCls = "text-base font-semibold text-neutral-800 mb-4";
   const topicFormCls = "grid gap-4";
   const topicFieldCls = "grid gap-1.5";
@@ -222,12 +214,8 @@ export default function AppActions() {
       </div>
 
       {showTopicModal && (
-        <div className={backdropCls} onClick={handleTopicModalBackdropClick}>
-          <div
-            className={topicModalCardCls}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <h2 className={topicModalTitleCls}>Create New Topic</h2>
+        <Modal onClose={closeTopicModal} size="sm">
+          <h2 className={topicModalTitleCls}>Create New Topic</h2>
 
             <form onSubmit={handleTopicFormSubmit} className={topicFormCls}>
               <div className={topicFieldCls}>
@@ -276,8 +264,7 @@ export default function AppActions() {
                 </button>
               </div>
             </form>
-          </div>
-        </div>
+        </Modal>
       )}
 
       <GenerateQuestionsModal

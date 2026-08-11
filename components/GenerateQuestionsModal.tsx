@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Modal } from "@parkerburgess/wandering-parker-ui";
 import type { Lookups } from "@/lib/dal/types";
 import { buildQuestionPrompt } from "@/lib/prompt-builder";
 
@@ -51,11 +52,6 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
     );
   }
 
-  function handleBackdropClick(e: React.MouseEvent) {
-    e.stopPropagation();
-    handleClose();
-  }
-
   function handlePromptChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
     setPromptText(e.target.value);
     setUserEditedPrompt(true);
@@ -97,10 +93,6 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
   }
 
   // #region Tailwind utility consts
-  const backdropCls =
-    "fixed inset-0 z-50 flex items-center justify-center bg-black/40";
-  const modalCardCls =
-    "bg-card rounded-xl border border-neutral-200 shadow-lg w-full max-w-lg p-6";
   const modalTitleCls = "text-base font-semibold text-neutral-800 mb-5";
   const successWrapperCls = "flex flex-col items-center gap-4 py-10";
   const successIconCls = "text-correct-600";
@@ -149,9 +141,8 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
   const canGenerate = !!promptText.trim() && levels.length > 0 && questionTypes.length > 0;
 
   return (
-    <div className={backdropCls} onClick={handleBackdropClick}>
-      <div className={modalCardCls} onClick={(e) => e.stopPropagation()}>
-        <h2 className={modalTitleCls}>Generate Questions</h2>
+    <Modal onClose={handleClose} size="lg">
+      <h2 className={modalTitleCls}>Generate Questions</h2>
 
         {successCount !== null ? (
           <div className={successWrapperCls}>
@@ -295,7 +286,6 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
             )}
           </div>
         )}
-      </div>
-    </div>
+    </Modal>
   );
 }
