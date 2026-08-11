@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { dal } from "@/lib/dal";
 import type { CreateExamInput } from "@/lib/dal";
-import { getUserId } from "@/lib/auth";
+import { getUserId } from "@parkerburgess/wandering-parker-server";
 import { badRequest } from "@/lib/api-response";
 
 export async function POST(request: Request) {

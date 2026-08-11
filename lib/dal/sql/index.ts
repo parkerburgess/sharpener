@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { getPool } from "@/lib/db";
+import { getPool } from "@parkerburgess/wandering-parker-server";
 import type {
   AnswerMultipleChoiceInput,
   AnswerTextInput,

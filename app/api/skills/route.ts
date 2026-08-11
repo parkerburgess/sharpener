@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { dal } from "@/lib/dal";
-import { getUserId } from "@/lib/auth";
+import { getUserId } from "@parkerburgess/wandering-parker-server";
 
 export async function GET() {
   const userId = await getUserId();
