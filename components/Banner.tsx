@@ -1,8 +1,10 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useTheme } from "next-themes";
 import AppActions from "@/components/AppActions";
-import UserMenu from "@/components/UserMenu";
+import { UserMenu } from "@parkerburgess/wandering-parker-ui";
 
 type Props = {
   userName: string;
@@ -10,6 +12,10 @@ type Props = {
 
 export default function Banner({ userName }: Props) {
   const router = useRouter();
+  const { theme, setTheme } = useTheme();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => setMounted(true), []);
 
   // #region Tailwind utility consts
   const headerCls =
@@ -20,6 +26,10 @@ export default function Banner({ userName }: Props) {
   const rightColCls = "flex-1 flex items-center justify-end px-6";
   // #endregion
 
+  function handleToggleTheme() {
+    setTheme(theme === "dark" ? "light" : "dark");
+  }
+
   return (
     <header onClick={() => router.push("/")} className={headerCls}>
       <div className={leftColCls}>
@@ -29,7 +39,11 @@ export default function Banner({ userName }: Props) {
       <img src="/banner.svg" alt="Sharpener" className={bannerImgCls} />
 
       <div className={rightColCls}>
-        <UserMenu userName={userName} />
+        <UserMenu
+          userName={userName}
+          theme={mounted ? (theme === "dark" ? "dark" : "light") : undefined}
+          onToggleTheme={mounted ? handleToggleTheme : undefined}
+        />
       </div>
     </header>
   );

@@ -12,7 +12,7 @@
     "@anthropic-ai/sdk": "^0.106.0",
     "@parkerburgess/wandering-parker-server": "^0.1.1",
     "@parkerburgess/wandering-parker-theme": "^0.1.0",
-    "@parkerburgess/wandering-parker-ui": "^0.1.0",
+    "@parkerburgess/wandering-parker-ui": "^0.2.0",
     "@types/mssql": "^12.3.0",
     "concurrently": "^10.0.3",
     "jose": "^6.2.3",
