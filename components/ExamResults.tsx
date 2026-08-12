@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import type { ExamSummary, LookupItem } from "@/lib/dal/types";
 import ExamResultCard from "@/components/ExamResultCard";
+import { SlowRequestNotice, useSlowRequestNotice } from "@parkerburgess/wandering-parker-ui";
 
 const DATE_OPTIONS = [
   { label: "Last 7 days", value: "7" },
@@ -35,6 +36,8 @@ export default function ExamResults() {
         setLoading(false);
       });
   }, [days, topicId]);
+
+  const slowMessage = useSlowRequestNotice(loading);
 
   // #region Tailwind utility consts
   const wrapperCls = "bg-card rounded-xl shadow p-6 flex flex-col gap-4 h-full";
@@ -76,7 +79,10 @@ export default function ExamResults() {
       </div>
 
       {loading ? (
-        <p className={statusTextCls}>Loading...</p>
+        <>
+          <p className={statusTextCls}>Loading...</p>
+          <SlowRequestNotice message={slowMessage} />
+        </>
       ) : exams.length === 0 ? (
         <p className={statusTextCls}>No exams found.</p>
       ) : (
