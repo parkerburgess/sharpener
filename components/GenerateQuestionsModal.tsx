@@ -16,8 +16,8 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
   const [levels, setLevels] = useState<string[]>([]);
   const [questionTypes, setQuestionTypes] = useState<string[]>([]);
   const [count, setCount] = useState(6);
-  const [promptText, setPromptText] = useState("");
-  const [userEditedPrompt, setUserEditedPrompt] = useState(false);
+  /* Null means "follow the parameters"; a string means the user typed over it. */
+  const [editedPrompt, setEditedPrompt] = useState<string | null>(null);
   const [generating, setGenerating] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [successCount, setSuccessCount] = useState<number | null>(null);
@@ -33,12 +33,15 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
       });
   }, [open]);
 
-  // Auto-rebuild prompt when params change, unless user has manually edited it
-  useEffect(() => {
-    if (userEditedPrompt) return;
-    if (!topic && levels.length === 0 && questionTypes.length === 0) return;
-    setPromptText(buildQuestionPrompt({ topic, levels, questionTypes, count }));
-  }, [topic, levels, questionTypes, count, userEditedPrompt]);
+  /* Derived during render rather than synced by an effect: the prompt is a pure
+     function of the parameters until the user types over it. Calling setState
+     inside an effect for this is a lint error under the React Compiler rules. */
+  const userEditedPrompt = editedPrompt !== null;
+  const generatedPrompt =
+    !topic && levels.length === 0 && questionTypes.length === 0
+      ? ""
+      : buildQuestionPrompt({ topic, levels, questionTypes, count });
+  const promptText = editedPrompt ?? generatedPrompt;
 
   function toggleLevel(text: string) {
     setLevels((prev) =>
@@ -53,13 +56,11 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
   }
 
   function handlePromptChange(e: React.ChangeEvent<HTMLTextAreaElement>) {
-    setPromptText(e.target.value);
-    setUserEditedPrompt(true);
+    setEditedPrompt(e.target.value);
   }
 
   function resetPrompt() {
-    setUserEditedPrompt(false);
-    setPromptText(buildQuestionPrompt({ topic, levels, questionTypes, count }));
+    setEditedPrompt(null);
   }
 
   function handleClose() {
