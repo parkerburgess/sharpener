@@ -68,20 +68,20 @@ export default function ReviewPage() {
     "bg-card rounded-xl shadow p-8 flex flex-col gap-4 max-w-sm w-full text-center";
   const completionMessageCls = "text-gray-700 font-medium";
   const homeLinkCls =
-    "bg-brand-600 hover:bg-brand-700 text-white font-semibold " +
+    "bg-primary-700 hover:bg-primary-800 text-primary-foreground font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const mainCls = "min-h-screen bg-surface p-6";
   const contentWrapperCls = "max-w-2xl mx-auto flex flex-col gap-4";
   const reviewBannerCls =
-    "bg-caution-100 border border-caution-300 text-caution-800 " +
+    "bg-warning-100 border border-warning-300 text-warning-800 " +
     "rounded-lg px-4 py-2 text-sm font-semibold flex items-center justify-between";
   const bannerTitleColCls = "flex flex-col gap-0.5";
-  const bannerTitleSubCls = "font-normal text-caution-700 text-xs";
+  const bannerTitleSubCls = "font-normal text-warning-700 text-xs";
   const bannerControlsCls = "flex items-center gap-4 font-normal";
   const missedOnlyLabelCls = "flex items-center gap-2 cursor-pointer";
-  const missedOnlyTextCls = "text-caution-800";
+  const missedOnlyTextCls = "text-warning-800";
   const endReviewBtnCls =
-    "text-sm font-semibold text-caution-700 hover:text-caution-900 " +
+    "text-sm font-semibold text-warning-700 hover:text-warning-900 " +
     "transition cursor-pointer";
   const questionCardCls = "bg-card rounded-xl shadow p-8";
   // #endregion

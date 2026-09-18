@@ -96,7 +96,7 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
   // #region Tailwind utility consts
   const modalTitleCls = "text-base font-semibold text-neutral-800 mb-5";
   const successWrapperCls = "flex flex-col items-center gap-4 py-10";
-  const successIconCls = "text-correct-600";
+  const successIconCls = "text-success-600";
   const successTextCls = "text-sm font-medium text-neutral-700";
   const successCloseBtnCls =
     "mt-2 text-sm border border-neutral-300 rounded-lg px-5 py-2 " +
@@ -125,7 +125,7 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
   const promptTextareaCls =
     "text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 " +
     "bg-surface font-mono resize-y placeholder-gray-400";
-  const errorTextCls = "text-xs text-incorrect-500";
+  const errorTextCls = "text-xs text-danger-600";
   const infoTextCls = "text-xs text-neutral-400 flex items-center gap-1.5";
   const actionsRowCls = "flex justify-end gap-2";
   const cancelBtnCls =

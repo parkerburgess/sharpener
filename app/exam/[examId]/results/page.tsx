@@ -30,7 +30,7 @@ export default function ExamResultsPage() {
   const loadingTextCls = "text-neutral-400";
   const notFoundTextCls = "text-neutral-500";
   const homeLinkCls =
-    "text-center bg-brand-600 hover:bg-brand-700 text-white " +
+    "text-center bg-primary-700 hover:bg-primary-800 text-primary-foreground " +
     "font-semibold rounded-lg px-4 py-2 transition";
   // #endregion
 

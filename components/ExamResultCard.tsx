@@ -17,8 +17,8 @@ export default function ExamResultCard({ exam }: { exam: ExamSummary }) {
   }, [exam.title]);
 
   const pctColor =
-    exam.percentage >= 80 ? "text-correct-600" :
-    exam.percentage >= 60 ? "text-caution-600" : "text-incorrect-500";
+    exam.percentage >= 80 ? "text-success-600" :
+    exam.percentage >= 60 ? "text-warning-600" : "text-danger-600";
 
   const levelMap = new Map(exam.levelBreakdown.map((lb) => [lb.level, lb]));
 
@@ -28,7 +28,7 @@ export default function ExamResultCard({ exam }: { exam: ExamSummary }) {
   const headerRowCls = "flex items-center justify-between gap-2";
   const titleCls = "font-semibold text-neutral-800 truncate";
   const reviewBtnCls =
-    "shrink-0 text-neutral-400 hover:text-brand-600 transition cursor-pointer";
+    "shrink-0 text-neutral-400 hover:text-primary-600 transition cursor-pointer";
   const statsRowCls = "flex items-start gap-4";
   const pctColCls = "flex flex-col items-center w-16 shrink-0";
   const pctValueCls = `text-3xl font-bold ${pctColor}`;

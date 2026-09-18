@@ -93,13 +93,13 @@ export default function ExamSetUp() {
     "w-60 bg-neutral-50 truncate block";
   const questionCountInputCls =
     "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
-    "focus:outline-none focus:ring-2 focus:ring-brand-400 w-16";
+    "focus:outline-none focus:ring-2 focus:ring-primary-400 w-16";
   const actionRowCls = "flex items-center gap-3 ml-auto";
   const errorTextCls = "text-red-500 text-xs";
   const startBtnCls =
     "text-sm font-medium cursor-pointer transition " +
-    "text-brand-600 hover:text-brand-800 hover:bg-brand-50 " +
-    "border border-brand-300 rounded-lg px-3 py-1.5 " +
+    "text-primary-600 hover:text-primary-800 hover:bg-primary-50 " +
+    "border border-primary-300 rounded-lg px-3 py-1.5 " +
     "disabled:opacity-40 disabled:cursor-not-allowed";
   const summaryCls = "text-xs text-neutral-500 italic min-h-[1rem]";
   // #endregion
@@ -229,7 +229,7 @@ function MultiSelect({
   const triggerBtnCls =
     "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
     "bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 " +
-    "focus:ring-brand-400 flex items-center gap-1.5 cursor-pointer";
+    "focus:ring-primary-400 flex items-center gap-1.5 cursor-pointer";
   const chevronCls = "w-3.5 h-3.5 text-neutral-400";
   const dropdownCls =
     "absolute top-full mt-1 left-0 z-20 bg-card border border-neutral-200 " +

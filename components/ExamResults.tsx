@@ -46,7 +46,7 @@ export default function ExamResults() {
   const filterSelectCls =
     "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
     "bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 " +
-    "focus:ring-brand-400 cursor-pointer";
+    "focus:ring-primary-400 cursor-pointer";
   const statusTextCls = "text-neutral-400 text-sm";
   const cardsGridCls = "flex flex-wrap gap-3 justify-start";
   // #endregion

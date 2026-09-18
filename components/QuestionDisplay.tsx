@@ -83,48 +83,48 @@ export default function QuestionDisplay({
     "flex items-start gap-3 p-3 rounded-lg border text-sm " +
     "text-left cursor-pointer disabled:cursor-default";
   const optionDefaultCls = "border-neutral-200 bg-card";
-  const optionCorrectExamCls = "border-correct-400 bg-correct-50";
-  const optionIncorrectExamCls = "border-incorrect-400 bg-incorrect-50";
-  const optionCorrectReviewCls = "border-correct-300 bg-correct-50";
-  const optionIncorrectReviewCls = "border-incorrect-300 bg-incorrect-50";
-  const optionSkippedCorrectCls = "border-caution-300 bg-caution-100";
+  const optionCorrectExamCls = "border-success-400 bg-success-50";
+  const optionIncorrectExamCls = "border-danger-400 bg-danger-50";
+  const optionCorrectReviewCls = "border-success-300 bg-success-50";
+  const optionIncorrectReviewCls = "border-danger-300 bg-danger-50";
+  const optionSkippedCorrectCls = "border-warning-300 bg-warning-100";
   const optionKeyCls = "font-bold text-neutral-500 w-5 shrink-0";
   const optionTextCls = "text-neutral-800";
   const textAreaWrapperCls = "flex flex-col gap-2";
   const textAreaCls =
     "w-full border border-neutral-200 rounded-lg px-3 py-2 text-sm resize-none " +
-    "focus:outline-none focus:ring-2 focus:ring-brand-400 disabled:bg-neutral-50 " +
+    "focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:bg-neutral-50 " +
     "placeholder-neutral-500";
   const textSubmitBtnCls =
-    "self-start bg-brand-600 hover:bg-brand-700 disabled:opacity-50 " +
-    "disabled:cursor-not-allowed cursor-pointer text-white text-sm font-semibold " +
+    "self-start bg-primary-700 hover:bg-primary-800 disabled:opacity-50 " +
+    "disabled:cursor-not-allowed cursor-pointer text-primary-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const selfGradeWrapperCls = "flex flex-col gap-2";
   const selfGradeQuestionCls = "text-sm font-medium text-neutral-700";
   const selfGradeBtnsRowCls = "flex gap-2";
   const correctGradeBtnCls =
-    "bg-correct-600 hover:bg-correct-700 disabled:opacity-50 " +
-    "disabled:cursor-not-allowed cursor-pointer text-white text-sm font-semibold " +
+    "bg-success-700 hover:bg-success-800 disabled:opacity-50 " +
+    "disabled:cursor-not-allowed cursor-pointer text-success-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const incorrectGradeBtnCls =
-    "bg-incorrect-500 hover:bg-incorrect-600 disabled:opacity-50 " +
-    "disabled:cursor-not-allowed cursor-pointer text-white text-sm font-semibold " +
+    "bg-danger-700 hover:bg-danger-800 disabled:opacity-50 " +
+    "disabled:cursor-not-allowed cursor-pointer text-danger-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const answerBannerBaseCls =
     "rounded-lg p-3 text-sm font-medium flex items-center justify-between";
-  const correctBannerCls = "bg-correct-100 text-correct-800";
-  const incorrectBannerCls = "bg-incorrect-100 text-incorrect-700";
+  const correctBannerCls = "bg-success-100 text-success-800";
+  const incorrectBannerCls = "bg-danger-100 text-danger-800";
   const answerLevelCls = "text-xs font-normal opacity-70";
   const explanationBoxCls =
-    "bg-brand-50 border border-brand-100 rounded-lg p-4 text-sm text-neutral-700";
-  const explanationTitleCls = "font-semibold text-brand-800 mb-1";
+    "bg-primary-50 border border-primary-100 rounded-lg p-4 text-sm text-neutral-700";
+  const explanationTitleCls = "font-semibold text-primary-800 mb-1";
   const explanationBodyCls = "whitespace-pre-wrap";
   const examActionsRowCls = "flex gap-3 justify-end";
   const skipBtnCls =
     "text-sm text-neutral-500 hover:text-neutral-700 border border-neutral-300 " +
     "rounded-lg px-4 py-2 cursor-pointer transition";
   const nextBtnExamCls =
-    "bg-brand-600 hover:bg-brand-700 text-white text-sm font-semibold " +
+    "bg-primary-700 hover:bg-primary-800 text-primary-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 cursor-pointer transition";
   // #endregion
 

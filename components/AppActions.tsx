@@ -149,7 +149,7 @@ export default function AppActions() {
   const topicInputCls =
     "text-sm border border-neutral-300 rounded-lg px-3 py-2 " +
     "text-neutral-800 bg-surface placeholder-gray-400";
-  const topicErrorCls = "text-xs text-incorrect-500";
+  const topicErrorCls = "text-xs text-danger-600";
   const loadingTopicsTextCls = "text-xs text-neutral-400";
   const existingTopicsGroupCls = "grid gap-1.5";
   const existingTopicsLabelCls =

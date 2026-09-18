@@ -2,8 +2,8 @@ import type { TopicRating } from "@/lib/dal/types";
 
 export default function SkillsRatingCard({ rating }: { rating: TopicRating }) {
   const pctColor =
-    rating.averageScore >= 80 ? "text-correct-600" :
-    rating.averageScore >= 60 ? "text-caution-600" : "text-incorrect-500";
+    rating.averageScore >= 80 ? "text-success-600" :
+    rating.averageScore >= 60 ? "text-warning-600" : "text-danger-600";
 
   // #region Tailwind utility consts
   const cardCls =
