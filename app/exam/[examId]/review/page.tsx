@@ -68,7 +68,7 @@ export default function ReviewPage() {
     "bg-card rounded-xl shadow p-8 flex flex-col gap-4 max-w-sm w-full text-center";
   const completionMessageCls = "text-gray-700 font-medium";
   const homeLinkCls =
-    "bg-primary-700 hover:bg-primary-800 text-primary-foreground font-semibold " +
+    "bg-primary-fill hover:bg-primary-fill-hover text-primary-foreground font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const mainCls = "min-h-screen bg-surface p-6";
   const contentWrapperCls = "max-w-2xl mx-auto flex flex-col gap-4";

@@ -96,18 +96,18 @@ export default function QuestionDisplay({
     "focus:outline-none focus:ring-2 focus:ring-primary-400 disabled:bg-neutral-50 " +
     "placeholder-neutral-500";
   const textSubmitBtnCls =
-    "self-start bg-primary-700 hover:bg-primary-800 disabled:opacity-50 " +
+    "self-start bg-primary-fill hover:bg-primary-fill-hover disabled:opacity-50 " +
     "disabled:cursor-not-allowed cursor-pointer text-primary-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const selfGradeWrapperCls = "flex flex-col gap-2";
   const selfGradeQuestionCls = "text-sm font-medium text-neutral-700";
   const selfGradeBtnsRowCls = "flex gap-2";
   const correctGradeBtnCls =
-    "bg-success-700 hover:bg-success-800 disabled:opacity-50 " +
+    "bg-success-fill hover:bg-success-fill-hover disabled:opacity-50 " +
     "disabled:cursor-not-allowed cursor-pointer text-success-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const incorrectGradeBtnCls =
-    "bg-danger-700 hover:bg-danger-800 disabled:opacity-50 " +
+    "bg-danger-fill hover:bg-danger-fill-hover disabled:opacity-50 " +
     "disabled:cursor-not-allowed cursor-pointer text-danger-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 transition";
   const answerBannerBaseCls =
@@ -124,7 +124,7 @@ export default function QuestionDisplay({
     "text-sm text-neutral-500 hover:text-neutral-700 border border-neutral-300 " +
     "rounded-lg px-4 py-2 cursor-pointer transition";
   const nextBtnExamCls =
-    "bg-primary-700 hover:bg-primary-800 text-primary-foreground text-sm font-semibold " +
+    "bg-primary-fill hover:bg-primary-fill-hover text-primary-foreground text-sm font-semibold " +
     "rounded-lg px-4 py-2 cursor-pointer transition";
   // #endregion
 
