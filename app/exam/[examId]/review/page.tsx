@@ -63,10 +63,10 @@ export default function ReviewPage() {
   // #region Tailwind utility consts
   const screenCenterCls =
     "min-h-screen bg-surface flex items-center justify-center";
-  const loadingTextCls = "text-gray-400";
+  const loadingTextCls = "text-neutral-400";
   const completionCardCls =
     "bg-card rounded-xl shadow p-8 flex flex-col gap-4 max-w-sm w-full text-center";
-  const completionMessageCls = "text-gray-700 font-medium";
+  const completionMessageCls = "text-neutral-700 font-medium";
   const homeLinkCls =
     "bg-primary-fill hover:bg-primary-fill-hover text-primary-foreground font-semibold " +
     "rounded-lg px-4 py-2 transition";

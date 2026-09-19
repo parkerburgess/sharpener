@@ -95,11 +95,11 @@ export default function ExamSetUp() {
     "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
     "focus:outline-none focus:ring-2 focus:ring-primary-400 w-16";
   const actionRowCls = "flex items-center gap-3 ml-auto";
-  const errorTextCls = "text-red-500 text-xs";
+  const errorTextCls = "text-danger-600 text-xs";
   const startBtnCls =
-    "text-sm font-medium cursor-pointer transition " +
-    "text-primary-600 hover:text-primary-800 hover:bg-primary-50 " +
-    "border border-primary-300 rounded-lg px-3 py-1.5 " +
+    "text-sm font-semibold cursor-pointer transition " +
+    "bg-primary-fill hover:bg-primary-fill-hover text-primary-foreground " +
+    "rounded-lg px-3 py-1.5 " +
     "disabled:opacity-40 disabled:cursor-not-allowed";
   const summaryCls = "text-xs text-neutral-500 italic min-h-[1rem]";
   // #endregion

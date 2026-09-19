@@ -124,7 +124,7 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
     "text-xs text-neutral-400 hover:text-neutral-600 transition cursor-pointer";
   const promptTextareaCls =
     "text-sm border border-neutral-300 rounded-lg px-3 py-2 text-neutral-800 " +
-    "bg-surface font-mono resize-y placeholder-gray-400";
+    "bg-surface font-mono resize-y placeholder-neutral-400";
   const errorTextCls = "text-xs text-danger-600";
   const infoTextCls = "text-xs text-neutral-400 flex items-center gap-1.5";
   const actionsRowCls = "flex justify-end gap-2";
@@ -132,8 +132,9 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
     "text-sm border border-neutral-300 rounded-lg px-4 py-2 " +
     "text-neutral-600 hover:bg-neutral-50 transition cursor-pointer";
   const generateBtnCls =
-    "text-sm bg-neutral-800 text-white rounded-lg px-4 py-2 " +
-    "hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed " +
+    "text-sm font-semibold bg-primary-fill text-primary-foreground " +
+    "rounded-lg px-4 py-2 " +
+    "hover:bg-primary-fill-hover disabled:opacity-50 disabled:cursor-not-allowed " +
     "transition cursor-pointer";
   // #endregion
 

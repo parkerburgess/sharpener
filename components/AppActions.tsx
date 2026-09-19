@@ -148,7 +148,7 @@ export default function AppActions() {
   const topicLabelCls = "text-sm font-medium text-neutral-700";
   const topicInputCls =
     "text-sm border border-neutral-300 rounded-lg px-3 py-2 " +
-    "text-neutral-800 bg-surface placeholder-gray-400";
+    "text-neutral-800 bg-surface placeholder-neutral-400";
   const topicErrorCls = "text-xs text-danger-600";
   const loadingTopicsTextCls = "text-xs text-neutral-400";
   const existingTopicsGroupCls = "grid gap-1.5";
@@ -163,8 +163,9 @@ export default function AppActions() {
     "text-sm border border-neutral-300 rounded-lg px-4 py-2 " +
     "text-neutral-600 hover:bg-neutral-50 transition cursor-pointer";
   const saveBtnCls =
-    "text-sm bg-neutral-800 text-white rounded-lg px-4 py-2 " +
-    "hover:bg-neutral-700 disabled:opacity-50 disabled:cursor-not-allowed " +
+    "text-sm font-semibold bg-primary-fill text-primary-foreground " +
+    "rounded-lg px-4 py-2 " +
+    "hover:bg-primary-fill-hover disabled:opacity-50 disabled:cursor-not-allowed " +
     "transition cursor-pointer";
   // #endregion
 
