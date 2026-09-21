@@ -1,42 +1,16 @@
 "use client";
 
-import { useSyncExternalStore } from "react";
 import { useRouter } from "next/navigation";
-import { useTheme } from "next-themes";
 import AppActions from "@/components/AppActions";
-import { UserMenu } from "@parkerburgess/wandering-parker-ui";
+import { UserMenu, useTheme } from "@parkerburgess/wandering-parker-ui";
 
 type Props = {
   userName: string;
 };
 
-/**
- * next-themes cannot know the theme during server rendering, so the toggle has
- * to stay inert until the client has mounted or the markup mismatches on
- * hydration. useSyncExternalStore gives that "am I on the client yet" signal
- * without an effect — the usual useState/useEffect pair is now a lint error
- * under the React Compiler rules.
- */
-function subscribeToNothing(): () => void {
-  return function unsubscribe() {};
-}
-
-function getClientSnapshot(): boolean {
-  return true;
-}
-
-function getServerSnapshot(): boolean {
-  return false;
-}
-
 export default function Banner({ userName }: Props) {
   const router = useRouter();
-  const { theme, setTheme } = useTheme();
-  const mounted = useSyncExternalStore(
-    subscribeToNothing,
-    getClientSnapshot,
-    getServerSnapshot
-  );
+  const { resolvedTheme, setTheme } = useTheme();
 
   // #region Tailwind utility consts
   const headerCls =
@@ -47,12 +21,16 @@ export default function Banner({ userName }: Props) {
   const rightColCls = "flex-1 flex items-center justify-end px-6";
   // #endregion
 
+  function handleHeaderClick() {
+    router.push("/");
+  }
+
   function handleToggleTheme() {
-    setTheme(theme === "dark" ? "light" : "dark");
+    setTheme(resolvedTheme === "dark" ? "light" : "dark");
   }
 
   return (
-    <header onClick={() => router.push("/")} className={headerCls}>
+    <header onClick={handleHeaderClick} className={headerCls}>
       <div className={leftColCls}>
         <AppActions />
       </div>
@@ -62,8 +40,8 @@ export default function Banner({ userName }: Props) {
       <div className={rightColCls}>
         <UserMenu
           userName={userName}
-          theme={mounted ? (theme === "dark" ? "dark" : "light") : undefined}
-          onToggleTheme={mounted ? handleToggleTheme : undefined}
+          theme={resolvedTheme}
+          onToggleTheme={handleToggleTheme}
         />
       </div>
     </header>

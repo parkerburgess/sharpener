@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import Providers from "./providers";
+import { ThemeProvider } from "@parkerburgess/wandering-parker-ui";
 import Banner from "@/components/Banner";
 import { getUserName } from "@parkerburgess/wandering-parker-server";
 
@@ -35,10 +35,10 @@ export default async function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning className={htmlCls}>
       <body className={bodyCls}>
-        <Providers>
+        <ThemeProvider>
           <Banner userName={userName} />
           {children}
-        </Providers>
+        </ThemeProvider>
       </body>
     </html>
   );
