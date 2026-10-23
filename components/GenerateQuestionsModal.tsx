@@ -31,7 +31,7 @@ export default function GenerateQuestionsModal({ open, onClose }: Props) {
         setLookups(data);
         if (data.topics.length > 0) setTopic(data.topics[0].displayText);
       });
-  }, [open]);
+  }, [open, lookups]);
 
   /* Derived during render rather than synced by an effect: the prompt is a pure
      function of the parameters until the user types over it. Calling setState

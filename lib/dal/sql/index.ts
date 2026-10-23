@@ -12,7 +12,6 @@ import type {
   Lookups,
   TopicRating,
 } from "@/lib/dal/types";
-import { debug } from "console";
 
 function shuffle<T>(arr: T[]): T[] {
   const a = [...arr];

@@ -35,6 +35,9 @@ export default function ExamSetUp() {
     const generated = [topicPart, datePart].filter(Boolean).join("_");
     autoTitleRef.current = generated;
     setTitle(generated);
+    // title is read only to detect a user-typed title; re-running on every
+    // keystroke would refill the field the moment the user clears it.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedTopics, lookups]);
 
   useEffect(() => {

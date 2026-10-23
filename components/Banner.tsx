@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useRouter } from "next/navigation";
 import AppActions from "@/components/AppActions";
 import { UserMenu, useTheme } from "@parkerburgess/wandering-parker-ui";
@@ -35,7 +36,16 @@ export default function Banner({ userName }: Props) {
         <AppActions />
       </div>
 
-      <img src="/banner.svg" alt="Sharpener" className={bannerImgCls} />
+      {/* SVGs are already vector, so skip the raster optimizer. */}
+      <Image
+        src="/banner.svg"
+        alt="Sharpener"
+        width={2400}
+        height={900}
+        unoptimized
+        priority
+        className={bannerImgCls}
+      />
 
       <div className={rightColCls}>
         <UserMenu
