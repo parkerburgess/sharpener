@@ -11,7 +11,7 @@ type Props = {
 
 export default function Banner({ userName }: Props) {
   const router = useRouter();
-  const { resolvedTheme, setTheme } = useTheme();
+  const { resolvedTheme, setTheme, palette, setPalette } = useTheme();
 
   // #region Tailwind utility consts
   const headerCls =
@@ -52,6 +52,8 @@ export default function Banner({ userName }: Props) {
           userName={userName}
           theme={resolvedTheme}
           onToggleTheme={handleToggleTheme}
+          palette={palette}
+          onSelectPalette={setPalette}
         />
       </div>
     </header>
