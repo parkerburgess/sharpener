@@ -1,8 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import { useRouter } from "next/navigation";
 import AppActions from "@/components/AppActions";
+import BannerArt from "@/components/BannerArt";
 import { UserMenu, useTheme } from "@parkerburgess/wandering-parker-ui";
 
 type Props = {
@@ -18,7 +18,7 @@ export default function Banner({ userName }: Props) {
     "w-full h-24 flex-shrink-0 sticky top-0 z-10 bg-surface border-b " +
     "border-neutral-200 flex items-center cursor-pointer";
   const leftColCls = "flex-1 flex items-center pl-6";
-  const bannerImgCls = "w-1/2 h-full object-cover";
+  const bannerArtCls = "w-1/2 h-full";
   const rightColCls = "flex-1 flex items-center justify-end px-6";
   // #endregion
 
@@ -36,16 +36,7 @@ export default function Banner({ userName }: Props) {
         <AppActions />
       </div>
 
-      {/* SVGs are already vector, so skip the raster optimizer. */}
-      <Image
-        src="/banner.svg"
-        alt="Sharpener"
-        width={2400}
-        height={900}
-        unoptimized
-        priority
-        className={bannerImgCls}
-      />
+      <BannerArt className={bannerArtCls} />
 
       <div className={rightColCls}>
         <UserMenu
