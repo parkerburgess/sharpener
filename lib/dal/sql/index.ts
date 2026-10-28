@@ -1,5 +1,5 @@
 import sql from "mssql";
-import { getPool } from "@parkerburgess/wandering-parker-server";
+import { executeQuery, getPool } from "@parkerburgess/wandering-parker-server";
 import type {
   AnswerMultipleChoiceInput,
   AnswerTextInput,
@@ -24,19 +24,29 @@ function shuffle<T>(arr: T[]): T[] {
 
 const DISPLAY_KEYS = ["A", "B", "C", "D", "E"];
 
+// Retry policy: SELECTs go through executeQuery, which re-runs the query on a
+// transient error (e.g. the database still waking from auto-pause). Writes
+// stay on getPool() with a single attempt — an INSERT/UPDATE/DELETE can
+// commit and then lose its connection, and re-running it would apply it twice.
+
 export const sqlDataAccess: IDataAccess = {
   async getLookups(): Promise<Lookups> {
     try {
-      const pool = await getPool();
       const [levelsResult, topicsResult, questionTypesResult] = await Promise.all([
-        pool.request().query<{ LevelId: number; DisplayText: string }>(
-          "SELECT LevelId, DisplayText FROM [sharpener].Level ORDER BY LevelId"
+        executeQuery((request) =>
+          request.query<{ LevelId: number; DisplayText: string }>(
+            "SELECT LevelId, DisplayText FROM [sharpener].Level ORDER BY LevelId"
+          )
         ),
-        pool.request().query<{ TopicId: number; DisplayText: string }>(
-          "SELECT TopicId, DisplayText FROM [sharpener].Topic ORDER BY TopicId"
+        executeQuery((request) =>
+          request.query<{ TopicId: number; DisplayText: string }>(
+            "SELECT TopicId, DisplayText FROM [sharpener].Topic ORDER BY TopicId"
+          )
         ),
-        pool.request().query<{ QuestionTypeId: number; DisplayText: string }>(
-          "SELECT QuestionTypeId, DisplayText FROM [sharpener].QuestionType ORDER BY QuestionTypeId"
+        executeQuery((request) =>
+          request.query<{ QuestionTypeId: number; DisplayText: string }>(
+            "SELECT QuestionTypeId, DisplayText FROM [sharpener].QuestionType ORDER BY QuestionTypeId"
+          )
         ),
       ]);
       return {
@@ -117,20 +127,21 @@ export const sqlDataAccess: IDataAccess = {
       const topicParams = input.topicIds.map((_, i) => `@t${i}`).join(",");
       const qtParams = input.questionTypeIds.map((_, i) => `@qt${i}`).join(",");
 
-      const qReq = pool.request();
-      input.levelIds.forEach((id, i) => qReq.input(`l${i}`, sql.Int, id));
-      input.topicIds.forEach((id, i) => qReq.input(`t${i}`, sql.Int, id));
-      input.questionTypeIds.forEach((id, i) => qReq.input(`qt${i}`, sql.Int, id));
-      qReq.input("questionCount", sql.Int, input.questionCount);
+      const questionsResult = await executeQuery((request) => {
+        input.levelIds.forEach((id, i) => request.input(`l${i}`, sql.Int, id));
+        input.topicIds.forEach((id, i) => request.input(`t${i}`, sql.Int, id));
+        input.questionTypeIds.forEach((id, i) => request.input(`qt${i}`, sql.Int, id));
+        request.input("questionCount", sql.Int, input.questionCount);
 
-      const questionsResult = await qReq.query<{ QuestionId: number; QuestionTypeId: number }>(`
-        SELECT TOP(@questionCount) Q.QuestionId, Q.QuestionTypeId
-        FROM [sharpener].Question Q
-        WHERE Q.LevelId IN (${levelParams})
-          AND Q.TopicId IN (${topicParams})
-          AND Q.QuestionTypeId IN (${qtParams})
-        ORDER BY NEWID()
-      `);
+        return request.query<{ QuestionId: number; QuestionTypeId: number }>(`
+          SELECT TOP(@questionCount) Q.QuestionId, Q.QuestionTypeId
+          FROM [sharpener].Question Q
+          WHERE Q.LevelId IN (${levelParams})
+            AND Q.TopicId IN (${topicParams})
+            AND Q.QuestionTypeId IN (${qtParams})
+          ORDER BY NEWID()
+        `);
+      });
 
       const questions = questionsResult.recordset;
       if (questions.length === 0) {
@@ -164,11 +175,13 @@ export const sqlDataAccess: IDataAccess = {
         const resultId = resultInsert.recordset[0].ResultId;
 
         // Fetch answer options to detect multiple-choice
-        const optionsResult = await pool.request()
-          .input("questionId", sql.Int, QuestionId)
-          .query<{ AnswerOptionId: number }>(`
-            SELECT AnswerOptionId FROM [sharpener].AnswerOption WHERE QuestionId = @questionId
-          `);
+        const optionsResult = await executeQuery((request) =>
+          request
+            .input("questionId", sql.Int, QuestionId)
+            .query<{ AnswerOptionId: number }>(`
+              SELECT AnswerOptionId FROM [sharpener].AnswerOption WHERE QuestionId = @questionId
+            `)
+        );
 
         if (optionsResult.recordset.length > 0) {
           const shuffled = shuffle(optionsResult.recordset);
@@ -197,56 +210,58 @@ export const sqlDataAccess: IDataAccess = {
 
   async getExamQuestions(userId: string, examId: number): Promise<ExamQuestionView[]> {
     try {
-      const pool = await getPool();
+      const resultsResult = await executeQuery((request) =>
+        request
+          .input("examId", sql.Int, examId)
+          .input("userId", sql.NVarChar(50), userId)
+          .query<{
+            ResultId: number;
+            SortOrder: number;
+            QuestionId: number;
+            Level: string;
+            Text: string;
+            Explanation: string;
+            AnswerOptionId: number | null;
+            TextResponse: string | null;
+            GradedResponse: boolean | null;
+          }>(`
+            SELECT
+              R.ResultId, R.SortOrder, R.QuestionId,
+              L.DisplayText AS Level,
+              Q.Text, Q.Explanation,
+              R.AnswerOptionId, R.TextResponse, R.GradedResponse
+            FROM [sharpener].Result R
+            JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
+            JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId
+            JOIN [sharpener].Level L ON L.LevelId = Q.LevelId
+            WHERE R.ExamId = @examId AND E.UserId = @userId
+            ORDER BY R.SortOrder
+          `)
+      );
 
-      const resultsResult = await pool.request()
-        .input("examId", sql.Int, examId)
-        .input("userId", sql.NVarChar(50), userId)
-        .query<{
-          ResultId: number;
-          SortOrder: number;
-          QuestionId: number;
-          Level: string;
-          Text: string;
-          Explanation: string;
-          AnswerOptionId: number | null;
-          TextResponse: string | null;
-          GradedResponse: boolean | null;
-        }>(`
-          SELECT
-            R.ResultId, R.SortOrder, R.QuestionId,
-            L.DisplayText AS Level,
-            Q.Text, Q.Explanation,
-            R.AnswerOptionId, R.TextResponse, R.GradedResponse
-          FROM [sharpener].Result R
-          JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
-          JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId
-          JOIN [sharpener].Level L ON L.LevelId = Q.LevelId
-          WHERE R.ExamId = @examId AND E.UserId = @userId
-          ORDER BY R.SortOrder
-        `);
-
-      const optionsResult = await pool.request()
-        .input("examId", sql.Int, examId)
-        .input("userId", sql.NVarChar(50), userId)
-        .query<{
-          ResultId: number;
-          AnswerOptionId: number;
-          DisplayKey: string;
-          SortOrder: number;
-          Text: string;
-          IsCorrectAnswer: boolean;
-        }>(`
-          SELECT
-            RAO.ResultId, RAO.AnswerOptionId, RAO.DisplayKey, RAO.SortOrder,
-            AO.Text, AO.IsCorrectAnswer
-          FROM [sharpener].Result_AnswerOption RAO
-          JOIN [sharpener].Result R ON R.ResultId = RAO.ResultId
-          JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
-          JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = RAO.AnswerOptionId
-          WHERE R.ExamId = @examId AND E.UserId = @userId
-          ORDER BY RAO.ResultId, RAO.SortOrder
-        `);
+      const optionsResult = await executeQuery((request) =>
+        request
+          .input("examId", sql.Int, examId)
+          .input("userId", sql.NVarChar(50), userId)
+          .query<{
+            ResultId: number;
+            AnswerOptionId: number;
+            DisplayKey: string;
+            SortOrder: number;
+            Text: string;
+            IsCorrectAnswer: boolean;
+          }>(`
+            SELECT
+              RAO.ResultId, RAO.AnswerOptionId, RAO.DisplayKey, RAO.SortOrder,
+              AO.Text, AO.IsCorrectAnswer
+            FROM [sharpener].Result_AnswerOption RAO
+            JOIN [sharpener].Result R ON R.ResultId = RAO.ResultId
+            JOIN [sharpener].Exam E ON E.ExamId = R.ExamId
+            JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = RAO.AnswerOptionId
+            WHERE R.ExamId = @examId AND E.UserId = @userId
+            ORDER BY RAO.ResultId, RAO.SortOrder
+          `)
+      );
 
       const optionsByResult = new Map<number, { answerOptionId: number; displayKey: string; text: string; isCorrect: boolean }[]>();
       for (const row of optionsResult.recordset) {
@@ -329,56 +344,56 @@ export const sqlDataAccess: IDataAccess = {
 
   async getExams(userId: string, filters: { days?: number; topicId?: number }): Promise<ExamSummary[]> {
     try {
-      const pool = await getPool();
+      const dateFilter = filters.days != null
+        ? "AND E.DateTaken >= DATEADD(day, -@days, GETDATE())"
+        : "";
+      const topicFilter = filters.topicId != null
+        ? "AND EXISTS (SELECT 1 FROM [sharpener].Exam_Topic ET WHERE ET.ExamId = E.ExamId AND ET.TopicId = @topicId)"
+        : "";
 
-      const req = pool.request().input("userId", sql.NVarChar(50), userId);
-      let dateFilter = "";
-      if (filters.days != null) {
-        req.input("days", sql.Int, filters.days);
-        dateFilter = "AND E.DateTaken >= DATEADD(day, -@days, GETDATE())";
-      }
+      const summaryResult = await executeQuery((request) => {
+        request.input("userId", sql.NVarChar(50), userId);
+        if (filters.days != null) request.input("days", sql.Int, filters.days);
+        if (filters.topicId != null) request.input("topicId", sql.Int, filters.topicId);
 
-      let topicFilter = "";
-      if (filters.topicId != null) {
-        req.input("topicId", sql.Int, filters.topicId);
-        topicFilter = "AND EXISTS (SELECT 1 FROM [sharpener].Exam_Topic ET WHERE ET.ExamId = E.ExamId AND ET.TopicId = @topicId)";
-      }
-
-      const summaryResult = await req.query<{
-        ExamId: number;
-        Title: string;
-        DateTaken: Date;
-        TotalCount: number;
-        CorrectCount: number;
-      }>(`
-        SELECT
-          E.ExamId, E.Title, E.DateTaken,
-          COUNT(R.ResultId) AS TotalCount,
-          SUM(CASE
-            WHEN R.AnswerOptionId IS NOT NULL AND AO.IsCorrectAnswer = 1 THEN 1
-            WHEN R.GradedResponse = 1 THEN 1
-            ELSE 0
-          END) AS CorrectCount
-        FROM [sharpener].Exam E
-        JOIN [sharpener].Result R ON R.ExamId = E.ExamId
-        LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
-        WHERE E.UserId = @userId
-          ${dateFilter}
-          ${topicFilter}
-        GROUP BY E.ExamId, E.Title, E.DateTaken
-        ORDER BY E.DateTaken DESC
-      `);
+        return request.query<{
+          ExamId: number;
+          Title: string;
+          DateTaken: Date;
+          TotalCount: number;
+          CorrectCount: number;
+        }>(`
+          SELECT
+            E.ExamId, E.Title, E.DateTaken,
+            COUNT(R.ResultId) AS TotalCount,
+            SUM(CASE
+              WHEN R.AnswerOptionId IS NOT NULL AND AO.IsCorrectAnswer = 1 THEN 1
+              WHEN R.GradedResponse = 1 THEN 1
+              ELSE 0
+            END) AS CorrectCount
+          FROM [sharpener].Exam E
+          JOIN [sharpener].Result R ON R.ExamId = E.ExamId
+          LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+          WHERE E.UserId = @userId
+            ${dateFilter}
+            ${topicFilter}
+          GROUP BY E.ExamId, E.Title, E.DateTaken
+          ORDER BY E.DateTaken DESC
+        `);
+      });
 
       const examIds = summaryResult.recordset.map((r) => r.ExamId);
       if (examIds.length === 0) return [];
 
       const idList = examIds.join(",");
-      const topicsResult = await pool.request().query<{ ExamId: number; DisplayText: string }>(`
-        SELECT ET.ExamId, T.DisplayText
-        FROM [sharpener].Exam_Topic ET
-        JOIN [sharpener].Topic T ON T.TopicId = ET.TopicId
-        WHERE ET.ExamId IN (${idList})
-      `);
+      const topicsResult = await executeQuery((request) =>
+        request.query<{ ExamId: number; DisplayText: string }>(`
+          SELECT ET.ExamId, T.DisplayText
+          FROM [sharpener].Exam_Topic ET
+          JOIN [sharpener].Topic T ON T.TopicId = ET.TopicId
+          WHERE ET.ExamId IN (${idList})
+        `)
+      );
 
       const topicsByExam = new Map<number, string[]>();
       for (const row of topicsResult.recordset) {
@@ -386,26 +401,28 @@ export const sqlDataAccess: IDataAccess = {
         topicsByExam.get(row.ExamId)!.push(row.DisplayText);
       }
 
-      const levelsResult = await pool.request().query<{
-        ExamId: number;
-        Level: string;
-        TotalCount: number;
-        CorrectCount: number;
-      }>(`
-        SELECT R.ExamId, L.DisplayText AS Level,
-          COUNT(R.ResultId) AS TotalCount,
-          SUM(CASE
-            WHEN R.AnswerOptionId IS NOT NULL AND AO.IsCorrectAnswer = 1 THEN 1
-            WHEN R.GradedResponse = 1 THEN 1
-            ELSE 0
-          END) AS CorrectCount
-        FROM [sharpener].Result R
-        JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId
-        JOIN [sharpener].Level L ON L.LevelId = Q.LevelId
-        LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
-        WHERE R.ExamId IN (${idList})
-        GROUP BY R.ExamId, L.DisplayText
-      `);
+      const levelsResult = await executeQuery((request) =>
+        request.query<{
+          ExamId: number;
+          Level: string;
+          TotalCount: number;
+          CorrectCount: number;
+        }>(`
+          SELECT R.ExamId, L.DisplayText AS Level,
+            COUNT(R.ResultId) AS TotalCount,
+            SUM(CASE
+              WHEN R.AnswerOptionId IS NOT NULL AND AO.IsCorrectAnswer = 1 THEN 1
+              WHEN R.GradedResponse = 1 THEN 1
+              ELSE 0
+            END) AS CorrectCount
+          FROM [sharpener].Result R
+          JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId
+          JOIN [sharpener].Level L ON L.LevelId = Q.LevelId
+          LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+          WHERE R.ExamId IN (${idList})
+          GROUP BY R.ExamId, L.DisplayText
+        `)
+      );
 
       const levelsByExam = new Map<number, { level: string; correct: number; total: number }[]>();
       for (const row of levelsResult.recordset) {
@@ -439,36 +456,37 @@ export const sqlDataAccess: IDataAccess = {
 
   async getSkillRatings(userId: string): Promise<TopicRating[]> {
     try {
-      const pool = await getPool();
-      const result = await pool.request()
-        .input("userId", sql.NVarChar(50), userId)
-        .query<{
-        TopicId: number;
-        DisplayText: string;
-        AverageScore: number;
-        ExamCount: number;
-      }>(`
-        SELECT
-          T.TopicId,
-          T.DisplayText,
-          COUNT(DISTINCT E.ExamId) AS ExamCount,
-          AVG(CAST(
-            CASE
-              WHEN R.AnswerOptionId IS NOT NULL AND AO.IsCorrectAnswer = 1 THEN 1.0
-              WHEN R.GradedResponse = 1 THEN 1.0
-              ELSE 0.0
-            END
-          AS FLOAT)) * 100 AS AverageScore
-        FROM [sharpener].Topic T
-        JOIN [sharpener].Exam_Topic ET ON ET.TopicId = T.TopicId
-        JOIN [sharpener].Exam E ON E.ExamId = ET.ExamId
-        JOIN [sharpener].Result R ON R.ExamId = E.ExamId
-        JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId AND Q.TopicId = T.TopicId
-        LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
-        WHERE E.UserId = @userId
-        GROUP BY T.TopicId, T.DisplayText
-        ORDER BY T.DisplayText
-      `);
+      const result = await executeQuery((request) =>
+        request
+          .input("userId", sql.NVarChar(50), userId)
+          .query<{
+            TopicId: number;
+            DisplayText: string;
+            AverageScore: number;
+            ExamCount: number;
+          }>(`
+            SELECT
+              T.TopicId,
+              T.DisplayText,
+              COUNT(DISTINCT E.ExamId) AS ExamCount,
+              AVG(CAST(
+                CASE
+                  WHEN R.AnswerOptionId IS NOT NULL AND AO.IsCorrectAnswer = 1 THEN 1.0
+                  WHEN R.GradedResponse = 1 THEN 1.0
+                  ELSE 0.0
+                END
+              AS FLOAT)) * 100 AS AverageScore
+            FROM [sharpener].Topic T
+            JOIN [sharpener].Exam_Topic ET ON ET.TopicId = T.TopicId
+            JOIN [sharpener].Exam E ON E.ExamId = ET.ExamId
+            JOIN [sharpener].Result R ON R.ExamId = E.ExamId
+            JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId AND Q.TopicId = T.TopicId
+            LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
+            WHERE E.UserId = @userId
+            GROUP BY T.TopicId, T.DisplayText
+            ORDER BY T.DisplayText
+          `)
+      );
 
       return result.recordset.map((row): TopicRating => ({
         topicId: row.TopicId,
@@ -487,29 +505,35 @@ export const sqlDataAccess: IDataAccess = {
       const pool = await getPool();
 
       for (const q of questions) {
-        const topicResult = await pool.request()
-          .input("displayText", sql.NVarChar(100), q.topic)
-          .query<{ TopicId: number }>(
-            "SELECT TopicId FROM [sharpener].Topic WHERE DisplayText = @displayText"
-          );
+        const topicResult = await executeQuery((request) =>
+          request
+            .input("displayText", sql.NVarChar(100), q.topic)
+            .query<{ TopicId: number }>(
+              "SELECT TopicId FROM [sharpener].Topic WHERE DisplayText = @displayText"
+            )
+        );
         if (topicResult.recordset.length === 0)
           throw new Error(`Unknown topic: "${q.topic}"`);
         const topicId = topicResult.recordset[0].TopicId;
 
-        const levelResult = await pool.request()
-          .input("displayText", sql.NVarChar(100), q.level)
-          .query<{ LevelId: number }>(
-            "SELECT LevelId FROM [sharpener].Level WHERE DisplayText = @displayText"
-          );
+        const levelResult = await executeQuery((request) =>
+          request
+            .input("displayText", sql.NVarChar(100), q.level)
+            .query<{ LevelId: number }>(
+              "SELECT LevelId FROM [sharpener].Level WHERE DisplayText = @displayText"
+            )
+        );
         if (levelResult.recordset.length === 0)
           throw new Error(`Unknown level: "${q.level}"`);
         const levelId = levelResult.recordset[0].LevelId;
 
-        const qtResult = await pool.request()
-          .input("displayText", sql.NVarChar(100), q.questionType)
-          .query<{ QuestionTypeId: number }>(
-            "SELECT QuestionTypeId FROM [sharpener].QuestionType WHERE DisplayText = @displayText"
-          );
+        const qtResult = await executeQuery((request) =>
+          request
+            .input("displayText", sql.NVarChar(100), q.questionType)
+            .query<{ QuestionTypeId: number }>(
+              "SELECT QuestionTypeId FROM [sharpener].QuestionType WHERE DisplayText = @displayText"
+            )
+        );
         if (qtResult.recordset.length === 0)
           throw new Error(`Unknown question type: "${q.questionType}"`);
         const questionTypeId = qtResult.recordset[0].QuestionTypeId;
