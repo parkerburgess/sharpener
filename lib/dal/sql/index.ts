@@ -25,7 +25,7 @@ function shuffle<T>(arr: T[]): T[] {
 const DISPLAY_KEYS = ["A", "B", "C", "D", "E"];
 
 // Retry policy: SELECTs go through executeQuery, which re-runs the query on a
-// transient error (e.g. the database still waking from auto-pause). Writes
+// transient error (e.g. a brief Azure SQL failover). Writes
 // stay on getPool() with a single attempt — an INSERT/UPDATE/DELETE can
 // commit and then lose its connection, and re-running it would apply it twice.
 
