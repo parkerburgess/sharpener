@@ -1,9 +1,11 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeProvider } from "@parkerburgess/wandering-parker-ui";
-import Banner from "@/components/Banner";
+import { Header, ThemeProvider } from "@parkerburgess/wandering-parker-ui";
+import type { SiteNavItem } from "@parkerburgess/wandering-parker-ui";
 import { getUserName } from "@parkerburgess/wandering-parker-server";
+
+const navItems: SiteNavItem[] = [];
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -29,14 +31,17 @@ export default async function RootLayout({
 
   // #region Tailwind utility consts
   const htmlCls = `${geistSans.variable} ${geistMono.variable} h-full antialiased`;
-  const bodyCls = "min-h-full flex flex-col";
+  // h-full (not min-h-full): main's flex-1 needs a bounded ancestor height to
+  // cap against, so its own internal overflow-y-auto region actually scrolls
+  // instead of the whole page growing past the viewport.
+  const bodyCls = "h-full flex flex-col";
   // #endregion
 
   return (
     <html lang="en" suppressHydrationWarning className={htmlCls}>
       <body className={bodyCls}>
         <ThemeProvider>
-          <Banner userName={userName} />
+          <Header userName={userName} brandText="Sharpener" navItems={navItems} />
           {children}
         </ThemeProvider>
       </body>
