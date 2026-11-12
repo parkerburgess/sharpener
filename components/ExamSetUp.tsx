@@ -2,78 +2,115 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
-import type { Lookups, LookupItem } from "@/lib/dal/types";
+import type {
+  Lookups,
+  LookupItem,
+  TopicQuestionCounts,
+} from "@/lib/dal/types";
+
+type SetUpData = {
+  lookups: Lookups;
+  topicCounts: TopicQuestionCounts[];
+};
+
+async function fetchSetUpData(): Promise<SetUpData> {
+  const [lookupsRes, countsRes] = await Promise.all([
+    fetch("/api/lookups"),
+    fetch("/api/question-counts"),
+  ]);
+  if (!lookupsRes.ok || !countsRes.ok) {
+    throw new Error("Failed to load exam options");
+  }
+  const lookups = (await lookupsRes.json()) as Lookups;
+  const topicCounts = (await countsRes.json()) as TopicQuestionCounts[];
+  return { lookups, topicCounts };
+}
 
 export default function ExamSetUp() {
   const router = useRouter();
-  const [lookups, setLookups] = useState<Lookups | null>(null);
-  const [title, setTitle] = useState("");
+  const [setUpData, setSetUpData] = useState<SetUpData | null>(null);
   const [questionCount, setQuestionCount] = useState(10);
+  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [selectedLevels, setSelectedLevels] = useState<number[]>([]);
-  const [selectedTopics, setSelectedTopics] = useState<number[]>([]);
-  const [selectedTypes, setSelectedTypes] = useState<number[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
-  const autoTitleRef = useRef("");
   const titleSpanRef = useRef<HTMLSpanElement>(null);
   const [titleTruncated, setTitleTruncated] = useState(false);
 
   useEffect(() => {
-    if (!lookups) return;
-    if (title !== "" && title !== autoTitleRef.current) return;
+    let cancelled = false;
 
-    const topicPart = lookups.topics
-      .filter((t) => selectedTopics.includes(t.id))
-      .map((t) => t.displayText)
-      .join("_");
+    async function load() {
+      try {
+        const data = await fetchSetUpData();
+        if (cancelled) return;
+        setSetUpData(data);
+      } catch {
+        if (cancelled) return;
+        setError("Failed to load options");
+      }
+    }
 
-    const now = new Date();
-    const dd = String(now.getDate()).padStart(2, "0");
-    const mm = String(now.getMonth() + 1).padStart(2, "0");
-    const datePart = `${dd}/${mm}`;
+    load();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
-    const generated = [topicPart, datePart].filter(Boolean).join("_");
-    autoTitleRef.current = generated;
-    setTitle(generated);
-    // title is read only to detect a user-typed title; re-running on every
-    // keystroke would refill the field the moment the user clears it.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedTopics, lookups]);
+  const selectedTopicCounts =
+    setUpData?.topicCounts.find((t) => t.topicId === selectedTopicId) ?? null;
+
+  const title = setUpData
+    ? buildTitle(setUpData.lookups, selectedTopicCounts, selectedLevels)
+    : "";
 
   useEffect(() => {
     const el = titleSpanRef.current;
     if (el) setTitleTruncated(el.scrollWidth > el.offsetWidth);
   }, [title]);
 
-  useEffect(() => {
-    fetch("/api/lookups")
-      .then((r) => r.json())
-      .then(setLookups)
-      .catch(() => setError("Failed to load options"));
-  }, []);
+  function handleTopicSelect(topicId: number) {
+    // Levels picked for the old topic may have no questions in the new one.
+    setSelectedTopicId(topicId);
+    setSelectedLevels([]);
+  }
 
-  function toggleItem(id: number, list: number[], setList: (v: number[]) => void) {
-    setList(list.includes(id) ? list.filter((x) => x !== id) : [...list, id]);
+  function handleLevelToggle(levelId: number) {
+    const nextLevels = selectedLevels.includes(levelId)
+      ? selectedLevels.filter((id) => id !== levelId)
+      : [...selectedLevels, levelId];
+    setSelectedLevels(nextLevels);
+
+    const nextMax = getMaxQuestions(selectedTopicCounts, nextLevels);
+    if (nextMax !== null && questionCount > nextMax) {
+      setQuestionCount(nextMax);
+    }
+  }
+
+  function handleQuestionCountChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const entered = Math.max(1, parseInt(e.target.value) || 1);
+    const max = getMaxQuestions(selectedTopicCounts, selectedLevels);
+    setQuestionCount(max === null ? entered : Math.min(entered, max));
   }
 
   async function handleStart() {
+    if (!setUpData) return;
     setError(null);
-    if (!title.trim()) { setError("Title is required"); return; }
-    if (questionCount < 1) { setError("Question count must be at least 1"); return; }
+    if (selectedTopicId === null) { setError("Select a topic"); return; }
     if (!selectedLevels.length) { setError("Select at least one level"); return; }
-    if (!selectedTopics.length) { setError("Select at least one topic"); return; }
-    if (!selectedTypes.length) { setError("Select at least one question type"); return; }
+    if (questionCount < 1) { setError("Question count must be at least 1"); return; }
 
     setLoading(true);
     const res = await fetch("/api/exam", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
-        title: title.trim(),
+        title,
         questionCount,
         levelIds: selectedLevels,
-        topicIds: selectedTopics,
-        questionTypeIds: selectedTypes,
+        topicIds: [selectedTopicId],
+        // Type is no longer a choice; every exam draws from all types.
+        questionTypeIds: setUpData.lookups.questionTypes.map((qt) => qt.id),
       }),
     });
     const data = await res.json();
@@ -107,17 +144,28 @@ export default function ExamSetUp() {
   const summaryCls = "text-xs text-neutral-500 italic min-h-[1rem]";
   // #endregion
 
-  if (!lookups) return <div className={loadingCls}>Loading...</div>;
+  if (!setUpData) {
+    return <div className={error ? errorTextCls : loadingCls}>{error ?? "Loading..."}</div>;
+  }
 
-  const summary = buildSummary(lookups, selectedTypes, selectedTopics, selectedLevels);
+  const { lookups, topicCounts } = setUpData;
+
+  const topicsWithQuestions: LookupItem[] = topicCounts
+    .filter((t) => t.totalCount > 0)
+    .map((t) => ({ id: t.topicId, displayText: t.displayText }));
+
+  const levelsForTopic: LookupItem[] = selectedTopicCounts
+    ? lookups.levels.filter((l) => (selectedTopicCounts.countsByLevelId[l.id] ?? 0) > 0)
+    : [];
+
+  const maxQuestions = getMaxQuestions(selectedTopicCounts, selectedLevels);
+  const summary = buildSummary(lookups, selectedTopicCounts, selectedLevels);
 
   const isStartDisabled =
     loading ||
-    !title.trim() ||
-    questionCount < 1 ||
+    selectedTopicId === null ||
     !selectedLevels.length ||
-    !selectedTopics.length ||
-    !selectedTypes.length;
+    questionCount < 1;
 
   return (
     <div className={wrapperCls}>
@@ -133,31 +181,28 @@ export default function ExamSetUp() {
         <input
           type="number"
           min={1}
+          max={maxQuestions ?? undefined}
           className={questionCountInputCls}
           value={questionCount}
-          onChange={(e) => setQuestionCount(Math.max(1, parseInt(e.target.value) || 1))}
-          title="Question count"
+          onChange={handleQuestionCountChange}
+          title={maxQuestions === null ? "Question count" : `Question count (max ${maxQuestions})`}
         />
 
-        <MultiSelect
+        <OptionDropdown
           label="Topic"
-          items={lookups.topics}
-          selected={selectedTopics}
-          onToggle={(id) => toggleItem(id, selectedTopics, setSelectedTopics)}
+          mode="radio"
+          items={topicsWithQuestions}
+          selected={selectedTopicId === null ? [] : [selectedTopicId]}
+          onSelect={handleTopicSelect}
         />
 
-        <MultiSelect
+        <OptionDropdown
           label="Level"
-          items={lookups.levels}
+          mode="checkbox"
+          items={levelsForTopic}
           selected={selectedLevels}
-          onToggle={(id) => toggleItem(id, selectedLevels, setSelectedLevels)}
-        />
-
-        <MultiSelect
-          label="Type"
-          items={lookups.questionTypes}
-          selected={selectedTypes}
-          onToggle={(id) => toggleItem(id, selectedTypes, setSelectedTypes)}
+          onSelect={handleLevelToggle}
+          disabled={selectedTopicId === null}
         />
 
         <div className={actionRowCls}>
@@ -177,6 +222,51 @@ export default function ExamSetUp() {
   );
 }
 
+/*
+ * Total questions available for the chosen topic across the chosen levels.
+ * Null until both a topic and at least one level are picked, meaning
+ * "no cap yet".
+ */
+function getMaxQuestions(
+  topicCounts: TopicQuestionCounts | null,
+  levelIds: number[],
+): number | null {
+  if (!topicCounts || !levelIds.length) return null;
+  return levelIds.reduce(
+    (total, levelId) => total + (topicCounts.countsByLevelId[levelId] ?? 0),
+    0,
+  );
+}
+
+function getLevelNames(lookups: Lookups, levelIds: number[]): string[] {
+  return lookups.levels
+    .filter((l) => levelIds.includes(l.id))
+    .map((l) => l.displayText);
+}
+
+const LEVEL_ABBREVIATIONS: Record<string, string> = {
+  Novice: "nvc",
+  Intermediate: "int",
+  Pro: "pro",
+};
+
+// Falls back to the first three letters for any level not in the map.
+function abbreviateLevel(levelName: string): string {
+  return LEVEL_ABBREVIATIONS[levelName] ?? levelName.slice(0, 3).toLowerCase();
+}
+
+function buildTitle(
+  lookups: Lookups,
+  topicCounts: TopicQuestionCounts | null,
+  levelIds: number[],
+): string {
+  if (!topicCounts) return "";
+  const levelNames = getLevelNames(lookups, levelIds);
+  if (!levelNames.length) return topicCounts.displayText;
+  const levelPart = levelNames.map(abbreviateLevel).join("/");
+  return `${topicCounts.displayText} - ${levelPart}`;
+}
+
 function joinList(items: string[]): string {
   if (items.length === 0) return "___";
   if (items.length === 1) return items[0];
@@ -185,41 +275,39 @@ function joinList(items: string[]): string {
 
 function buildSummary(
   lookups: Lookups,
-  _selectedTypes: number[],
-  selectedTopics: number[],
-  selectedLevels: number[],
+  topicCounts: TopicQuestionCounts | null,
+  levelIds: number[],
 ): string | null {
-  if (!selectedTopics.length && !selectedLevels.length) return null;
+  if (!topicCounts) return null;
 
-  const topicNames = lookups.topics
-    .filter((t) => selectedTopics.includes(t.id))
-    .map((t) => t.displayText);
-  const levelNames = lookups.levels
-    .filter((l) => selectedLevels.includes(l.id))
-    .map((l) => l.displayText);
+  const levelNames = getLevelNames(lookups, levelIds);
   const levelSuffix = levelNames.length === 1 ? "level" : "levels";
 
-  return `This will test ${joinList(topicNames)} at a ${joinList(levelNames)} ${levelSuffix}.`;
+  return `This will test ${topicCounts.displayText} at a ${joinList(levelNames)} ${levelSuffix}.`;
 }
 
-function MultiSelect({
+/*
+ * Dropdown of options. "radio" allows one pick and closes on selection;
+ * "checkbox" allows many and stays open.
+ */
+function OptionDropdown({
   label,
+  mode,
   items,
   selected,
-  onToggle,
+  onSelect,
+  disabled = false,
 }: {
   label: string;
+  mode: "radio" | "checkbox";
   items: LookupItem[];
   selected: number[];
-  onToggle: (id: number) => void;
+  onSelect: (id: number) => void;
+  disabled?: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
-  const summary = selected.length === 0
-    ? label
-    : selected.length === items.length
-      ? `${label}: All`
-      : `${label}: ${selected.length}`;
+  const summary = buildDropdownSummary(label, mode, items, selected);
 
   function handleBlur(e: React.FocusEvent<HTMLDivElement>) {
     if (!containerRef.current?.contains(e.relatedTarget as Node)) {
@@ -227,12 +315,22 @@ function MultiSelect({
     }
   }
 
+  function handleTriggerClick() {
+    setOpen((o) => !o);
+  }
+
+  function handleItemChange(id: number) {
+    onSelect(id);
+    if (mode === "radio") setOpen(false);
+  }
+
   // #region Tailwind utility consts
   const containerCls = "relative";
   const triggerBtnCls =
     "border border-neutral-200 rounded-lg px-3 py-1.5 text-sm text-neutral-800 " +
     "bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 " +
-    "focus:ring-primary-400 flex items-center gap-1.5 cursor-pointer";
+    "focus:ring-primary-400 flex items-center gap-1.5 cursor-pointer " +
+    "disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-card";
   const chevronCls = "w-3.5 h-3.5 text-neutral-400";
   const dropdownCls =
     "absolute top-full mt-1 left-0 z-20 bg-card border border-neutral-200 " +
@@ -240,14 +338,20 @@ function MultiSelect({
   const itemLabelCls =
     "flex items-center gap-2 text-sm text-neutral-800 cursor-pointer " +
     "px-1 py-0.5 rounded hover:bg-neutral-50";
+  const checkboxInputCls = "rounded cursor-pointer";
+  const radioInputCls = "cursor-pointer";
+  const emptyTextCls = "text-sm text-neutral-500 px-1 py-0.5";
   // #endregion
+
+  const inputCls = mode === "radio" ? radioInputCls : checkboxInputCls;
 
   return (
     <div className={containerCls} ref={containerRef} onBlur={handleBlur}>
       <button
         type="button"
-        onClick={() => setOpen((o) => !o)}
+        onClick={handleTriggerClick}
         className={triggerBtnCls}
+        disabled={disabled}
       >
         {summary}
         <svg className={chevronCls} fill="none" stroke="currentColor" strokeWidth={2} viewBox="0 0 24 24">
@@ -255,18 +359,20 @@ function MultiSelect({
         </svg>
       </button>
 
-      {open && (
+      {open && !disabled && (
         <div
           className={dropdownCls}
           onMouseDown={(e) => e.preventDefault()}
         >
+          {items.length === 0 && <span className={emptyTextCls}>No options</span>}
           {items.map((item) => (
             <label key={item.id} className={itemLabelCls}>
               <input
-                type="checkbox"
+                type={mode}
+                name={mode === "radio" ? label : undefined}
                 checked={selected.includes(item.id)}
-                onChange={() => onToggle(item.id)}
-                className="rounded"
+                onChange={() => handleItemChange(item.id)}
+                className={inputCls}
               />
               {item.displayText}
             </label>
@@ -275,4 +381,19 @@ function MultiSelect({
       )}
     </div>
   );
+}
+
+function buildDropdownSummary(
+  label: string,
+  mode: "radio" | "checkbox",
+  items: LookupItem[],
+  selected: number[],
+): string {
+  if (selected.length === 0) return label;
+  if (mode === "radio") {
+    const picked = items.find((item) => item.id === selected[0]);
+    return picked ? `${label}: ${picked.displayText}` : label;
+  }
+  if (selected.length === items.length) return `${label}: All`;
+  return `${label}: ${selected.length}`;
 }
