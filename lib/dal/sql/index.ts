@@ -10,6 +10,7 @@ import type {
   ImportQuestion,
   LookupItem,
   Lookups,
+  TopicQuestionCounts,
   TopicRating,
 } from "@/lib/dal/types";
 
@@ -65,23 +66,6 @@ export const sqlDataAccess: IDataAccess = {
       };
     } catch (err) {
       console.error("[DAL] getLookups failed", { err });
-      throw err;
-    }
-  },
-
-  async createTopic(displayText: string): Promise<number> {
-    try {
-      const pool = await getPool();
-      const result = await pool
-        .request()
-        .input("DisplayText", sql.NVarChar(100), displayText)
-        .query<{ TopicId: number }>(`
-          INSERT INTO [sharpener].Topic (DisplayText) VALUES (@DisplayText);
-          SELECT SCOPE_IDENTITY() AS TopicId;
-        `);
-      return result.recordset[0].TopicId;
-    } catch (err) {
-      console.error("[DAL] createTopic failed", { err });
       throw err;
     }
   },
@@ -566,6 +550,67 @@ export const sqlDataAccess: IDataAccess = {
       }
     } catch (err) {
       console.error("[DAL] importQuestions failed", { err });
+      throw err;
+    }
+  },
+
+  async getQuestionCountsByTopic(): Promise<TopicQuestionCounts[]> {
+    try {
+      // LEFT JOIN so topics with no questions still come back, as a single
+      // row with NULL LevelId/QuestionTypeId and a count of 0.
+      const result = await executeQuery((request) =>
+        request.query<{
+          TopicId: number;
+          DisplayText: string;
+          LevelId: number | null;
+          QuestionTypeId: number | null;
+          QuestionCount: number;
+        }>(`
+          SELECT
+            T.TopicId,
+            T.DisplayText,
+            Q.LevelId,
+            Q.QuestionTypeId,
+            COUNT(Q.QuestionId) AS QuestionCount
+          FROM [sharpener].Topic T
+          LEFT JOIN [sharpener].Question Q ON Q.TopicId = T.TopicId
+          GROUP BY T.TopicId, T.DisplayText, Q.LevelId, Q.QuestionTypeId
+          ORDER BY T.DisplayText
+        `)
+      );
+
+      const countsByTopicId = new Map<number, TopicQuestionCounts>();
+      for (const row of result.recordset) {
+        let topicCounts = countsByTopicId.get(row.TopicId);
+        if (!topicCounts) {
+          topicCounts = {
+            topicId: row.TopicId,
+            displayText: row.DisplayText,
+            totalCount: 0,
+            countsByLevelId: {},
+            countsByQuestionTypeId: {},
+          };
+          countsByTopicId.set(row.TopicId, topicCounts);
+        }
+
+        topicCounts.totalCount += row.QuestionCount;
+        if (row.LevelId !== null) {
+          const levelCount = topicCounts.countsByLevelId[row.LevelId] ?? 0;
+          topicCounts.countsByLevelId[row.LevelId] =
+            levelCount + row.QuestionCount;
+        }
+        if (row.QuestionTypeId !== null) {
+          const typeCount =
+            topicCounts.countsByQuestionTypeId[row.QuestionTypeId] ?? 0;
+          topicCounts.countsByQuestionTypeId[row.QuestionTypeId] =
+            typeCount + row.QuestionCount;
+        }
+      }
+
+      // Map preserves insertion order, so the ORDER BY carries through.
+      return [...countsByTopicId.values()];
+    } catch (err) {
+      console.error("[DAL] getQuestionCountsByTopic failed", { err });
       throw err;
     }
   },

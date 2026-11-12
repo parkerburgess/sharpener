@@ -5,7 +5,10 @@ import { Header, ThemeProvider } from "@parkerburgess/wandering-parker-ui";
 import type { SiteNavItem } from "@parkerburgess/wandering-parker-ui";
 import { getUserName } from "@parkerburgess/wandering-parker-server";
 
-const navItems: SiteNavItem[] = [];
+const navItems: SiteNavItem[] = [
+  { label: "Home", href: "/" },
+  { label: "Question Management", href: "/question-management" },
+];
 
 const geistSans = Geist({
   variable: "--font-geist-sans",

@@ -12,5 +12,6 @@ export type {
   ExamSummary,
   TopicRating,
   ImportQuestion,
+  TopicQuestionCounts,
   IDataAccess,
 } from "@/lib/dal/types";

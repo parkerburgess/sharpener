@@ -64,9 +64,21 @@ export type ImportQuestion = {
   answerOptions: { text: string; isCorrectAnswer: boolean }[];
 };
 
+/*
+ * Question totals for one topic, broken down two independent ways. Each
+ * breakdown sums to totalCount on its own. The maps are keyed by LevelId /
+ * QuestionTypeId; a missing key means zero.
+ */
+export type TopicQuestionCounts = {
+  topicId: number;
+  displayText: string;
+  totalCount: number;
+  countsByLevelId: Record<number, number>;
+  countsByQuestionTypeId: Record<number, number>;
+};
+
 export interface IDataAccess {
   getLookups(): Promise<Lookups>;
-  createTopic(displayText: string): Promise<number>;
   createExam(userId: string, input: CreateExamInput): Promise<number>;
   getExamQuestions(userId: string, examId: number): Promise<ExamQuestionView[]>;
   answerQuestion(
@@ -77,4 +89,5 @@ export interface IDataAccess {
   getExams(userId: string, filters: { days?: number; topicId?: number }): Promise<ExamSummary[]>;
   getSkillRatings(userId: string): Promise<TopicRating[]>;
   importQuestions(questions: ImportQuestion[]): Promise<void>;
+  getQuestionCountsByTopic(): Promise<TopicQuestionCounts[]>;
 }
