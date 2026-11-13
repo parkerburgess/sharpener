@@ -2,8 +2,11 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { Header, ThemeProvider } from "@parkerburgess/wandering-parker-ui";
-import type { SiteNavItem } from "@parkerburgess/wandering-parker-ui";
-import { getUserName } from "@parkerburgess/wandering-parker-server";
+import type {
+  SiteNavItem,
+  ContactConfig,
+} from "@parkerburgess/wandering-parker-ui";
+import { getUserName, getUserEmail } from "@parkerburgess/wandering-parker-server";
 
 const navItems: SiteNavItem[] = [
   { label: "Home", href: "/" },
@@ -32,6 +35,13 @@ export default async function RootLayout({
 }>) {
   const userName = (await getUserName()) ?? "User";
 
+  const contact: ContactConfig = {
+    endpoint: `${process.env.AUTH_SERVICE_URL ?? "http://localhost:3001"}/api/contact`,
+    sourceApp: "Sharpener",
+    turnstileSiteKey: process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY,
+    userEmail: (await getUserEmail()) ?? undefined,
+  };
+
   // #region Tailwind utility consts
   const htmlCls = `${geistSans.variable} ${geistMono.variable} h-full antialiased`;
   // h-full (not min-h-full): main's flex-1 needs a bounded ancestor height to
@@ -44,7 +54,12 @@ export default async function RootLayout({
     <html lang="en" suppressHydrationWarning className={htmlCls}>
       <body className={bodyCls}>
         <ThemeProvider>
-          <Header userName={userName} brandText="Sharpener" navItems={navItems} />
+          <Header
+            userName={userName}
+            brandText="Sharpener"
+            navItems={navItems}
+            contact={contact}
+          />
           {children}
         </ThemeProvider>
       </body>
