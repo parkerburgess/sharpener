@@ -88,3 +88,5 @@ questions and results will be held in a database and be reviewable.  Results and
 - Strongly typed — no `any`, `object`, or `dynamic`
 - No hardcoded file paths — use a single config constant
 - API response helpers live in `lib/api-response.ts` — use `badRequest(msg)` for 400, `unprocessable(msg)` for 422, `serverError(msg)` for 500
+
+@~/.claude/tailwind-react.md
