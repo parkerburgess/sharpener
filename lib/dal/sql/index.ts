@@ -4,6 +4,7 @@ import type {
   AnswerMultipleChoiceInput,
   AnswerTextInput,
   CreateExamInput,
+  ExamFilters,
   ExamQuestionView,
   ExamSummary,
   IDataAccess,
@@ -326,7 +327,7 @@ export const sqlDataAccess: IDataAccess = {
     }
   },
 
-  async getExams(userId: string, filters: { days?: number; topicId?: number }): Promise<ExamSummary[]> {
+  async getExams(userId: string, filters: ExamFilters): Promise<ExamSummary[]> {
     try {
       const dateFilter = filters.days != null
         ? "AND E.DateTaken >= DATEADD(day, -@days, GETDATE())"
@@ -438,12 +439,23 @@ export const sqlDataAccess: IDataAccess = {
     }
   },
 
-  async getSkillRatings(userId: string): Promise<TopicRating[]> {
+  async getSkillRatings(userId: string, filters: ExamFilters): Promise<TopicRating[]> {
     try {
-      const result = await executeQuery((request) =>
-        request
-          .input("userId", sql.NVarChar(50), userId)
-          .query<{
+      // Same date window as getExams. The topic filter narrows to that one
+      // topic's questions, so only its rating comes back.
+      const dateFilter = filters.days != null
+        ? "AND E.DateTaken >= DATEADD(day, -@days, GETDATE())"
+        : "";
+      const topicFilter = filters.topicId != null
+        ? "AND T.TopicId = @topicId"
+        : "";
+
+      const result = await executeQuery((request) => {
+        request.input("userId", sql.NVarChar(50), userId);
+        if (filters.days != null) request.input("days", sql.Int, filters.days);
+        if (filters.topicId != null) request.input("topicId", sql.Int, filters.topicId);
+
+        return request.query<{
             TopicId: number;
             DisplayText: string;
             AverageScore: number;
@@ -467,10 +479,12 @@ export const sqlDataAccess: IDataAccess = {
             JOIN [sharpener].Question Q ON Q.QuestionId = R.QuestionId AND Q.TopicId = T.TopicId
             LEFT JOIN [sharpener].AnswerOption AO ON AO.AnswerOptionId = R.AnswerOptionId
             WHERE E.UserId = @userId
+              ${dateFilter}
+              ${topicFilter}
             GROUP BY T.TopicId, T.DisplayText
             ORDER BY T.DisplayText
-          `)
-      );
+          `);
+      });
 
       return result.recordset.map((row): TopicRating => ({
         topicId: row.TopicId,

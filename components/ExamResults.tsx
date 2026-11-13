@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import type { ExamSummary, LookupItem } from "@/lib/dal/types";
+import { examFiltersQuery } from "@/lib/exam-filters";
+import type { ExamFilterSelection } from "@/lib/exam-filters";
 import ExamResultCard from "@/components/ExamResultCard";
 import { SlowRequestNotice, useSlowRequestNotice } from "@parkerburgess/wandering-parker-ui";
 
@@ -12,11 +14,14 @@ const DATE_OPTIONS = [
   { label: "All time", value: "" },
 ];
 
-export default function ExamResults() {
+type Props = {
+  filters: ExamFilterSelection;
+  onFiltersChange: (filters: ExamFilterSelection) => void;
+};
+
+export default function ExamResults({ filters, onFiltersChange }: Props) {
   const [exams, setExams] = useState<ExamSummary[]>([]);
   const [topics, setTopics] = useState<LookupItem[]>([]);
-  const [days, setDays] = useState("");
-  const [topicId, setTopicId] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -26,21 +31,29 @@ export default function ExamResults() {
   }, []);
 
   useEffect(() => {
-    const params = new URLSearchParams();
-    if (days) params.set("days", days);
-    if (topicId) params.set("topicId", topicId);
-    fetch(`/api/exams?${params}`)
+    function showExams(data: ExamSummary[]) {
+      setExams(data);
+      setLoading(false);
+    }
+
+    fetch(`/api/exams?${examFiltersQuery(filters)}`)
       .then((r) => r.json())
-      .then((data) => {
-        setExams(data);
-        setLoading(false);
-      });
-  }, [days, topicId]);
+      .then(showExams);
+  }, [filters]);
+
+  function handleDaysChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    onFiltersChange({ ...filters, days: e.target.value });
+  }
+
+  function handleTopicChange(e: React.ChangeEvent<HTMLSelectElement>) {
+    onFiltersChange({ ...filters, topicId: e.target.value });
+  }
 
   const slowMessage = useSlowRequestNotice(loading);
 
   // #region Tailwind utility consts
-  const wrapperCls = "bg-card rounded-xl shadow p-6 flex flex-col gap-4 h-full";
+  const wrapperCls =
+    "bg-card rounded-xl shadow p-6 flex flex-col gap-4 h-full min-h-0";
   const filterRowCls = "flex items-center gap-3";
   const titleCls = "text-xl font-bold text-neutral-800 mr-1";
   const filterSelectCls =
@@ -48,7 +61,12 @@ export default function ExamResults() {
     "bg-card hover:bg-neutral-50 focus:outline-none focus:ring-2 " +
     "focus:ring-primary-400 cursor-pointer";
   const statusTextCls = "text-neutral-400 text-sm";
-  const cardsGridCls = "flex flex-wrap gap-3 justify-start";
+  // Takes the height left under the filters and scrolls inside the card
+  // background. p-1/-m-1 keeps card shadows from being clipped at the edges
+  // without shifting the cards out of line with the title.
+  const cardsGridCls =
+    "flex-1 min-h-0 overflow-y-auto p-1 -m-1 " +
+    "flex flex-wrap content-start gap-3 justify-start";
   // #endregion
 
   return (
@@ -57,8 +75,8 @@ export default function ExamResults() {
         <h2 className={titleCls}>Exam Results</h2>
 
         <select
-          value={days}
-          onChange={(e) => setDays(e.target.value)}
+          value={filters.days}
+          onChange={handleDaysChange}
           className={filterSelectCls}
         >
           {DATE_OPTIONS.map((o) => (
@@ -67,8 +85,8 @@ export default function ExamResults() {
         </select>
 
         <select
-          value={topicId}
-          onChange={(e) => setTopicId(e.target.value)}
+          value={filters.topicId}
+          onChange={handleTopicChange}
           className={filterSelectCls}
         >
           <option value="">All topics</option>

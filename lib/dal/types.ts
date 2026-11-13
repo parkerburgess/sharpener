@@ -48,6 +48,13 @@ export type ExamSummary = {
   levelBreakdown: LevelBreakdown[];
 };
 
+// The Exam Results filters. Skills Rating applies the same ones so both
+// panels describe the same exams.
+export type ExamFilters = {
+  days?: number;
+  topicId?: number;
+};
+
 export type TopicRating = {
   topicId: number;
   displayText: string;
@@ -86,8 +93,8 @@ export interface IDataAccess {
     resultId: number,
     answer: AnswerMultipleChoiceInput | AnswerTextInput
   ): Promise<{ isCorrect: boolean }>;
-  getExams(userId: string, filters: { days?: number; topicId?: number }): Promise<ExamSummary[]>;
-  getSkillRatings(userId: string): Promise<TopicRating[]>;
+  getExams(userId: string, filters: ExamFilters): Promise<ExamSummary[]>;
+  getSkillRatings(userId: string, filters: ExamFilters): Promise<TopicRating[]>;
   importQuestions(questions: ImportQuestion[]): Promise<void>;
   getQuestionCountsByTopic(): Promise<TopicQuestionCounts[]>;
 }

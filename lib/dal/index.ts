@@ -10,6 +10,7 @@ export type {
   AnswerMultipleChoiceInput,
   AnswerTextInput,
   ExamSummary,
+  ExamFilters,
   TopicRating,
   ImportQuestion,
   TopicQuestionCounts,
